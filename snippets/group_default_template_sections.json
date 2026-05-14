@@ -1,0 +1,44 @@
+{
+    "key": "group_default_template_sections",
+    "title": "Universal Page — Sections",
+    "fields": [
+        {
+            "key": "field_flex_sections",
+            "label": "Sections",
+            "name": "flexible_sections",
+            "aria-label": "",
+            "type": "flexible_content",
+            "instructions": "Add and arrange sections to build the page.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "layouts": [],
+            "button_label": "Add section",
+            "min": "",
+            "max": ""
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "page_template",
+                "operator": "==",
+                "value": "templates/template-default.php"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "Sections for any page using the Universal Page template.",
+    "show_in_rest": 0,
+    "modified": 1730000000
+}

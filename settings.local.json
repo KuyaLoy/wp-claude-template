@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev)",
+      "Bash(npm run watch)",
+      "Bash(npm run build)",
+      "Bash(npm run production)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss*)",
+      "Bash(npx svgo*)",
+      "Bash(./node_modules/.bin/*)",
+      "Read(./**)",
+      "Glob(./**)",
+      "Grep(./**)"
+    ]
+  }
+}
