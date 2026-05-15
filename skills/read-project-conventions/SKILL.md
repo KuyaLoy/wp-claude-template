@@ -1,18 +1,30 @@
 ---
 name: read-project-conventions
-description: Reads project-specific conventions (brand tokens, fonts, breakpoints, container widths, section padding patterns) from the workspace-root README.md, the Tailwind source CSS (tailwind/tailwind-theme.css for underscoretw), and functions.php BEFORE any building work. Run this at the start of every session, or whenever frontend-builder, acf-architect, or responsive-engineer need to know what's specific to THIS project. Triggers on "what are the project conventions", "read the project notes", or automatically as the first step of any build task.
+description: Reads project-specific conventions (brand tokens, fonts, breakpoints, container widths, section padding patterns) from README.md + Tailwind source CSS + functions.php. **Lazy trigger** — runs only before the FIRST build action in a session (frontend-builder, responsive-engineer, acf-architect), not on every session start. Also triggers on "what are the project conventions" / "read the project notes" / when something feels wrong (color drifted, spacing off, font mismatched).
 ---
 
 # Read Project Conventions
 
-This is the meta-skill every other skill and agent depends on. **No two WordPress projects share the same brand tokens, fonts, breakpoints, or container widths.** Before doing anything project-specific, read what THIS project actually uses.
+This is the meta-skill every other build skill depends on. **No two WordPress projects share the same brand tokens, fonts, breakpoints, or container widths.** Before doing project-specific work, read what THIS project actually uses.
 
-## When to run this skill
+## When to run (lazy)
 
-- **Always** at the start of any new session
-- Before invoking `frontend-builder`, `responsive-engineer`, or `acf-architect` for the first time in a session
-- When the user asks "what are the project conventions" / "what brand tokens do we have"
-- When something feels wrong (color drifted, spacing off, font mismatched)
+- **Before the first build action in a session** — i.e. the first time `frontend-builder`, `responsive-engineer`, or `acf-architect` would be invoked.
+- When the user asks "what are the project conventions" / "what brand tokens do we have".
+- When something feels wrong (color drifted, spacing off, font mismatched, container width seems wrong).
+
+## What NOT to do
+
+- **Don't auto-run on every session start.** That burns ~2k tokens for nothing if the user is just asking a question or making a tiny edit.
+- **Don't re-read within the same session.** Once the conventions summary is in context, the calling skill/agent should reference it from chat history instead of re-invoking this skill. The summary is small and stable for the duration of the session.
+- **Don't read project files mid-build** unless the user mentions something has changed (e.g. "I just updated the brand colors"). If they say that, re-run this skill explicitly.
+
+## Cache rule
+
+If your context already contains a recent "Project conventions for <project name>" summary from this session, short-circuit: skip the file reads, return the cached summary. Only re-read when:
+- The user explicitly asks to refresh conventions
+- The user mentions they updated brand tokens / README / Tailwind theme
+- More than ~10 turns of conversation have passed and you're starting a new build action (defensive re-read for long sessions)
 
 ## Why this skill exists
 

@@ -1,21 +1,31 @@
 ---
 name: implement-figma-section
-description: Build a single static section from a section brief + Figma frame URL. Triggers when the user pastes a Figma URL alongside a section brief reference (e.g., "@briefs/home-hero.md https://figma.com/..."), or asks to "implement", "build", "code", "recreate" a section from a Figma link. This is the default entry point for the section-by-section workflow. Always builds STATIC first — no ACF — for pixel-perfect verification before going dynamic.
+description: Build a single static section from a section brief + Figma frame URL(s). Triggers on `@<name>.md <figma-url>` (with or without `briefs/` prefix), one or two Figma URLs, and any trailing freeform text as inline deviations. Also triggers on "implement / build / code / recreate this section from <figma-url>". Default entry point for the section-by-section workflow. Always builds STATIC first — no ACF — for pixel-perfect verification before going dynamic.
 ---
 
 # Implement Figma Section (static phase)
 
 This is the workhorse skill for the section-by-section workflow. It builds ONE section at a time, statically, into `templates/parts/section-{name}.php`. ACF conversion is a separate skill (`make-section-dynamic`).
 
-## Trigger phrases
+## Trigger phrases (all token-efficient)
 
-- `@briefs/<section>.md <figma-url>` (the canonical pattern)
-- "Implement this hero: <figma-url>"
-- "Build this section: <figma-url>"
-- "Code this design: <figma-url>"
-- "Recreate this Figma frame as section-<name>: <figma-url>"
+The skill auto-resolves the brief path and parses URLs + trailing text. All of these work:
 
-If the user pastes only a Figma URL with no brief reference, ask if they have a brief or want one auto-generated from the Figma frame name + a few questions.
+| You type | Resolves to |
+|---|---|
+| `@home-hero.md <figma-url>` | brief at `briefs/home-hero.md`, single desktop URL |
+| `@briefs/home-hero.md <figma-url>` | same (explicit path also works) |
+| `home-hero.md <figma-url>` | same (no `@` prefix needed) |
+| `@home-hero.md <desktop-url> <mobile-url>` | both URLs → routes to `match-mobile-desktop` |
+| `@home-hero.md <url> <url> use one bg image not per-card` | both URLs + everything after = inline deviations |
+| "Implement / build / code the hero: `<figma-url>`" | Same workflow; asks for section name if not obvious |
+| "Recreate this Figma frame as section-<name>: <url>" | Same |
+
+**Brief resolution rule:** if the path doesn't start with `/` or `briefs/`, auto-prepend `briefs/`. So `@home-hero.md` and `@briefs/home-hero.md` are equivalent.
+
+**If no brief file exists yet:** ask the user to confirm section name + owner template, then proceed without a brief file (using inline deviations only).
+
+**Inline deviations:** any text after the URL(s) that isn't itself a URL is treated as deviations. It's MERGED additively with the brief's existing "Deviations" or "Special notes" section — both apply. See workflow step 2.5.
 
 ## Mental model
 
@@ -44,9 +54,34 @@ If no brief exists: ask the user to confirm:
 2. Which template (homepage or default-flexible)
 3. Anything special about behavior
 
-### 2. Run `read-project-conventions` skill
+### 1b. Parse inline deviations from the user's message
 
-Always first. You need brand tokens, container, breakpoints, padding cadence, font, helpers before writing any markup.
+After resolving the brief path, scan the rest of the user's message for:
+
+- **URLs** (`figma.com/*` patterns). One URL = desktop only. Two URLs = desktop + mobile (route to `match-mobile-desktop`).
+- **Trailing freeform text** (anything that isn't a URL or the brief path): treat as inline deviations.
+
+**Merge rule (additive):** the inline deviations get APPENDED to whatever the brief's "Deviations" or "Special notes" section already says. Both apply. Don't replace.
+
+Example:
+
+```
+User: @home-hero.md https://figma.com/.../1-2 https://figma.com/.../1-3 use one bg image not per-card, cards stack on mobile, h3 not h2 for card titles
+```
+
+Parsed as:
+- Brief: `briefs/home-hero.md` (read existing notes)
+- URLs: 2 (routes to `match-mobile-desktop`)
+- Inline deviations:
+  - use one bg image not per-card
+  - cards stack on mobile
+  - h3 not h2 for card titles
+
+When building the section, surface BOTH the brief's notes AND the inline deviations in the final reply under "Deviations from Figma" so the user sees what was applied.
+
+### 2. Run `read-project-conventions` skill (lazy)
+
+Run this only if you haven't already pulled project conventions earlier in the session. The skill itself short-circuits if it sees a recent in-context summary — it doesn't re-read style.css and README.md on every call. You need brand tokens, container, breakpoints, padding cadence, font, helpers before writing any markup, but you only need them once per session.
 
 ### 3. Fetch Figma via MCP
 

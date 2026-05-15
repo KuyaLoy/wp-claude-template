@@ -34,6 +34,27 @@ Aspirational features identified during retros that haven't landed yet. Each wil
 
 ---
 
+## [3.3.0] — 2026-05-15
+
+**Phase 4 token-efficiency pass** — fewer keystrokes to trigger work, less context burn per session. The biggest day-to-day-feel change in the polish roadmap.
+
+### Added
+
+- **`/build` chained slash command** at `commands/build.md`. One shot: `implement-figma-section` → pause for user approval → `make-section-dynamic` → sync prompt. Existing `/implement` and `/make-dynamic` stay independent for cases where you want to iterate the static for a while.
+- Token-efficient trigger phrases for `implement-figma-section`. Now all of these work:
+  - `@home-hero.md <figma-url>` (auto-prepends `briefs/`)
+  - `@home-hero.md <desktop-url> <mobile-url>` (routes to `match-mobile-desktop`)
+  - `@home-hero.md <url> <url> use one bg image not per-card` (trailing text = inline deviations)
+  - Bare `home-hero.md <url>` (no `@` prefix needed)
+- **Inline-deviations merge.** Trailing freeform text after URLs is treated as deviations and appended additively to whatever the brief's "Deviations" / "Special notes" section already says — both apply, never replace. The final build reply surfaces both.
+
+### Changed
+
+- **`read-project-conventions` is now lazy-trigger.** No longer fires on every session start. Only runs before the FIRST build action in a session; subsequent calls within the same session short-circuit to the cached summary in context. Saves ~2k tokens per session for non-build conversations. The skill's `description:` and "When to run" section both updated; new "Cache rule" section documents when to defensively re-read.
+- **CLAUDE.md trimmed (conservative).** Removed section 11 (skills list) and section 12 (agents list) — those are auto-discoverable from `skills/*/SKILL.md` and `agents/*.md` frontmatter, so duplicating them in CLAUDE.md just rots. Section 11 is now a 6-line "common day-to-day patterns" pointer instead. Sections 4 (pixel-perfect), 5 (responsive), and 8 (ACF JSON sync) compressed to tighter bullets without losing rules. Section 9 (code style with `aiims_*` rule) kept intact. Section 7 (image/SVG decision tree) kept fully per user preference — it's the highest-traffic rule. Renumbered subsequent sections: 13→12, 14→13, 15→14. Net char savings ~12-15%.
+
+---
+
 ## [3.2.0] — 2026-05-15
 
 **Phase 3 cross-platform pass** — make every skill, agent, and slash command work identically in Claude Cowork (desktop) and Claude Code (CLI). MCP names standardized, install paths documented, PHP path helpers unified, environment-detect preambles added.

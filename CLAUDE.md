@@ -54,21 +54,22 @@ NEVER skip phase 1. NEVER do both phases in one go unless the user explicitly sa
 
 ## 4. Pixel-perfect rules (STRICT)
 
-- **100% pixel-perfect target.** Not "close enough".
-- **Container widths follow Figma.** If Figma's section is 1320px wide, the project container is 1320px (or matches the project's documented container — check `README.md`). Never silently round up/down.
-- **Spacing scale:** Use Tailwind tokens when within 2px of a token. 3-5px off — ask the user. >5px or hard requirement — use arbitrary `[73px]` values and surface the deviation in your reply.
-- **Colors:** Map Figma colors to brand tokens (`bg-primary`, `text-secondary`, etc.). If the Figma color doesn't match a brand token: 2+ uses → propose adding the token. One-off → arbitrary `[#xxx]` and flag.
-- **Typography:** Match font weight, size, line-height, letter-spacing. Use Tailwind classes; arbitrary only when scale doesn't have it.
-- After every section build, list deviations in your reply under "Deviations from Figma".
+- 100% pixel-perfect target. Not "close enough".
+- Container width follows Figma — never silently round up/down. Check `README.md` for project default.
+- Spacing: within 2px of a Tailwind token → use the token. 3-5px → ask. >5px → arbitrary `[73px]` + flag.
+- Colors: 2+ uses → propose new brand token. One-off → arbitrary `[#xxx]` + flag.
+- Typography: match family/size/weight/line-height/letter-spacing. Tailwind utilities first; arbitrary only when the scale doesn't have it.
+- Every section build lists deviations under "Deviations from Figma".
+- **If both desktop AND mobile Figma frames exist, BOTH must be cross-checked against their respective renders.** Mobile is not a "scaled-down desktop".
 
 ## 5. Responsive rules
 
-- Always responsive: **desktop → laptop → tablet → mobile**.
-- If the Figma file has both desktop AND mobile frames → user pastes both URLs → `match-mobile-desktop` skill handles it.
-- If the Figma has only desktop → build mobile-first defaults using sensible breakpoints from `README.md`. Surface guesses in your reply ("I assumed mobile stacks vertically with 24px gap — confirm before approving").
-- If the Figma has only mobile → ask the user if a desktop variant exists before guessing.
-- Touch targets minimum 44×44px on mobile.
-- Never use `display: none` to hide on mobile if the content is meaningful — restructure instead.
+- Always responsive: **desktop → laptop → tablet → mobile**, mobile-first defaults.
+- Two Figma URLs (desktop + mobile) → `match-mobile-desktop` skill.
+- Desktop-only Figma → build mobile-first defaults; surface every guess for confirmation.
+- Mobile-only Figma → ask if a desktop variant exists before guessing.
+- Touch targets ≥ 44×44px.
+- Never `display: none` meaningful content on mobile — restructure or accordion instead.
 
 ## 6. Tailwind-first rule
 
@@ -190,21 +191,16 @@ For icons used everywhere, never editable, no need for ACF. Just paste the SVG d
 
 ## 8. ACF JSON sync (manual workflow)
 
-ACF Pro auto-syncs from `acf-json/<group-id>.json` whenever the file's mtime is newer than the database version. The user controls when to apply changes.
+ACF Pro auto-syncs from `acf-json/<group-id>.json` when the file's `modified` timestamp is newer than the DB. The user controls the moment of sync via WP Admin → Custom Fields → Field Groups → "Sync changes".
 
-When the `make-section-dynamic` skill writes a new field group:
-1. Save to `wp-content/themes/<theme>/acf-json/group_{layout-slug}.json`
-2. Use the format ACF expects (`key`, `title`, `fields`, `location`, `menu_order`, `position`, `style`, `label_placement`, `instruction_placement`, `hide_on_screen`, `active`, `description`, `modified` (unix timestamp))
-3. Bump the `modified` timestamp to current `time()`
-4. Tell the user the exact step: **"Go to WP Admin → Custom Fields → Field Groups. You'll see a notice 'X field group has changes available'. Click 'Sync changes'."**
+When writing a new field group:
+1. Save to `acf-json/group_{layout-slug}.json` with the full ACF format (`key`, `title`, `fields`, `location`, etc.).
+2. Bump `modified` to current unix time.
+3. Tell the user where to click in WP Admin.
 
-If a group already exists:
-- Read the existing JSON
-- Merge new fields in (preserve existing `key` IDs — never regenerate them)
-- Bump `modified`
-- Same sync prompt
+When editing an existing group: read it, merge new fields (**preserve existing `key` IDs** — never regenerate), bump `modified`, same sync prompt.
 
-For Flexible Content layouts on the default template: the `flexible_sections` field group is shared. New section types ADD a new layout to that group — they don't create new groups. Edit `acf-json/group_default_template_sections.json`.
+For Flexible Content layouts on the default template: append the new layout to `acf-json/group_default_template_sections.json` `fields[0].layouts`. One shared group; new section types ADD layouts, don't create new groups.
 
 ## 9. Code style
 
@@ -246,60 +242,43 @@ wp-content/themes/<theme>/
 └── style.css
 ```
 
-## 11. Skills you have available
+## 11. Skills, agents, commands
 
-- `read-project-conventions` — read the workspace `README.md`, Tailwind theme tokens, container, breakpoints, helpers
-- `setup-claude` — one-time setup, runs only on first project init (self-deletes after success — only present in fresh projects)
-- `implement-figma-section` — build a static section from `@briefs/<name>.md` + Figma URL
-- `make-section-dynamic` — convert an approved static section to ACF Flexible Content layout + JSON
-- `add-flexible-layout` — add a new layout to the default template's Flexible Content field
-- `create-template` — make a new page / archive / single / search / 404 / taxonomy template (normal or flexible)
-- `acf-json-sync` — manage `acf-json/` folder, bump timestamps, prompt user to sync
-- `match-mobile-desktop` — given desktop + mobile Figma URLs, build a single responsive section that matches both pixel-perfectly
-- `pixel-perfect-verify` — screenshot the live page, compare to Figma, report diffs
-- `responsive-build` — given a desktop-only design, plan and apply mobile-first responsive
-- `handle-messy-figma-svg` — when Figma SVG export is truncated/oversized
-- `tailwind-theme-sync` — when adding a new brand token to `@theme`
+These are auto-discovered from `skills/*/SKILL.md`, `agents/*.md`, and `commands/*.md` frontmatter. Open those folders for the current set. Day-to-day, you mostly use:
 
-## 12. Agents you have available
+- `@<name>.md <figma-url>` → `implement-figma-section` (static build)
+- "Make <name> dynamic" → `make-section-dynamic` (ACF wire-up)
+- `/build <name> <figma-url>` → chained: static + dynamic in one flow
+- `/pixel-check [name]` → live-vs-Figma diff
+- `/ship-check` → a11y + perf + QA + ACF sync state before deploy
 
-- `frontend-builder` — Figma → Tailwind PHP markup (reads project conventions first)
-- `responsive-engineer` — desktop → mobile-first pass (reads project breakpoints)
-- `acf-architect` — designs ACF field groups, writes Local JSON
-- `qa-reviewer` — typos, links, content, escaping
-- `accessibility-auditor` — WCAG 2.1 AA review
-- `performance-auditor` — image weight, render-blocking, LCP
+## 12. Slash commands
 
-## 13. Slash commands
-
-- `/setup-claude` — first-time project bootstrap (only present on fresh projects; self-deletes after success)
-- `/implement <section-brief.md> <figma-url>` — build a static section
+- `/setup-claude` — first-time bootstrap (self-deletes after success)
+- `/build <name> <figma-url>` — chained: implement → pause for approval → make-dynamic
+- `/implement <section-brief.md> <figma-url>` — static section build only
 - `/make-dynamic <section-name>` — convert static to ACF
-- `/add-section <section-name>` — register a new flexible layout
-- `/create-template` — make a new page / archive / single / search / 404 / taxonomy template
+- `/add-section <section-name>` — register a new flexible layout (no markup)
+- `/create-template` — new page / archive / single / search / 404 / taxonomy template
 - `/pixel-check [section-name]` — compare live render to Figma
 - `/ship-check` — pre-deploy: a11y + perf + QA + ACF JSON sync state
 
-## 14. What NOT to do
+## 13. What NOT to do
 
 - Don't build a full page in one shot.
 - Don't go straight to ACF — static phase first, always.
 - Don't write SCSS or any non-Tailwind CSS unless Tailwind can't do it.
-- Don't add comments explaining what obvious code does.
-- Don't use `display: none` on mobile to hide design pieces — restructure.
+- Don't `display: none` mobile content — restructure or accordion instead.
 - Don't silently round container widths or spacings — surface deviations.
-- Don't use static image paths in dynamic ACF sections — every section image is ACF (use `aiims_img()` only for theme-wide static assets like logos).
-- Don't generate a new ACF `key` when editing an existing field — preserve the original.
-- Don't skip escaping. Every dynamic output must be escaped.
-- Don't skip `width` and `height` on `<img>` tags — required for CLS. ACF arrays always include them; static images use `aiims_img()` which reads them automatically.
-- For ACF images, write `<img>` / `<picture>` directly (using `$img['width']`, `$img['height']` from the array). Use `aiims_img()` ONLY for static theme assets.
-- Don't add features the user didn't ask for (e.g., custom post types unless they say so).
+- Don't use static image paths in dynamic ACF sections — `aiims_img()` is only for theme-wide static assets like logos.
+- Don't regenerate ACF `key` values when editing an existing field — preserve them.
+- Don't skip escaping or `width`/`height` on `<img>` (CLS).
+- Don't add features the user didn't ask for (custom post types, etc.).
 
-## 15. When in doubt
+## 14. When in doubt
 
-Ask the user. Specifically:
-- "Spacing in Figma is 73px — Tailwind has `py-[72px]` (4.5rem) or `py-20` (80px). Which?"
-- "Figma uses #2A4D8B for this CTA — none of the brand tokens match. Add as `--brand-cta` or arbitrary `[#2A4D8B]`?"
-- "No mobile design — should I build mobile defaults from these guesses, or wait?"
+Ask. The user prefers honesty over guessing. Examples:
 
-The user prefers honesty over guessing.
+- "Spacing in Figma is 73px — `py-[72px]` (4.5rem) or `py-20` (80px)?"
+- "Figma uses #2A4D8B for this CTA, no matching brand token. Add as `--color-cta` or use arbitrary `[#2A4D8B]`?"
+- "No mobile Figma — build mobile defaults from these guesses, or wait?"
