@@ -52,7 +52,33 @@ The user creates a `briefs/<section>.md` file with notes (use `briefs/_template.
 
 NEVER skip phase 1. NEVER do both phases in one go unless the user explicitly says "build static + dynamic together".
 
-## 4. Pixel-perfect rules (STRICT)
+## 4. Figma as source of truth (NON-NEGOTIABLE)
+
+**Figma MCP is the design data pipeline.** Every section build requires real values from Figma — not from a screenshot, not from a description, not from memory. Screenshots are downscaled (Figma MCP caps `get_screenshot` at 1024px), so spacing, color hex codes, font sizes, and design-token names get distorted. Building from a screenshot produces visually-plausible but inconsistent code that drifts across sections.
+
+The rule:
+
+1. **Before fetching design data, probe for `mcp__Figma__*` tools.** Look for `mcp__Figma__get_design_context`, `mcp__Figma__get_variable_defs`, `mcp__Figma__get_metadata`, `mcp__Figma__get_screenshot`.
+
+2. **If `mcp__Figma__*` is available** → use it. Always call `get_design_context` and `get_variable_defs` for true values; `get_screenshot` is for visual cross-reference only, never the primary source.
+
+3. **If `mcp__Figma__*` is NOT available** → **STOP. Do not build.** Reply with:
+
+   > "I can't access Figma right now. The Figma MCP is disconnected, and I won't build from a screenshot — it produces inconsistent design tokens across sections. Please reconnect Figma:
+   > - **Cowork:** Settings → Connectors → Figma → reconnect
+   > - **Claude Code:** restart your session, run `claude mcp list` to verify, or `claude mcp add figma`
+   >
+   > Then say 'continue' and I'll resume."
+
+   Wait for the user to confirm reconnection. Do NOT proceed with a screenshot. Do NOT proceed with a verbal description. Do NOT proceed with assumed values.
+
+4. **No exceptions** unless the user explicitly types something like "I have no Figma access, build from this screenshot only, I accept reduced accuracy." Even then, surface the risk in the reply: every value taken from the screenshot is flagged as "screenshot-derived, verify when Figma is reconnected."
+
+5. **If Figma disconnects mid-build** (the MCP returns errors after working earlier) → same rule. Stop, ask to reconnect, don't fall back to your earlier in-context Figma data unless the user explicitly says "use what you remember and flag everything." Memory drifts across multi-turn sessions; it's not a substitute for live MCP data.
+
+This is why we ship `INSTALL-MCPS.md` and why the `pixel-perfect-verify` skill probes for MCP availability before doing any work — the entire workflow assumes Figma is the source of truth.
+
+## 5. Pixel-perfect rules (STRICT — depends on §4)
 
 - 100% pixel-perfect target. Not "close enough".
 - Container width follows Figma — never silently round up/down. Check `README.md` for project default.
@@ -62,16 +88,17 @@ NEVER skip phase 1. NEVER do both phases in one go unless the user explicitly sa
 - Every section build lists deviations under "Deviations from Figma".
 - **If both desktop AND mobile Figma frames exist, BOTH must be cross-checked against their respective renders.** Mobile is not a "scaled-down desktop".
 
-## 5. Responsive rules
+## 6. Responsive rules
 
-- Always responsive: **desktop → laptop → tablet → mobile**, mobile-first defaults.
-- Two Figma URLs (desktop + mobile) → `match-mobile-desktop` skill.
-- Desktop-only Figma → build mobile-first defaults; surface every guess for confirmation.
-- Mobile-only Figma → ask if a desktop variant exists before guessing.
-- Touch targets ≥ 44×44px.
-- Never `display: none` meaningful content on mobile — restructure or accordion instead.
+- Every section must work at desktop → laptop → tablet → mobile, mobile-first defaults. There is no "desktop-only" section.
+- **One Figma URL given** → Claude builds desktop AND auto-makes it responsive (web → tablet → mobile) in the same build pass. Every breakpoint assumption Claude makes is surfaced in the final reply under "Mobile guesses" — the user confirms by previewing or asks to revise. Don't pause mid-build to ask; build through.
+- **Two Figma URLs given** (desktop + mobile) → invoke `match-mobile-desktop`. Both frames are pixel-matched; no guessing.
+- **Mobile-only Figma** → ask if a desktop variant exists before guessing.
+- Touch targets ≥ 44×44px on mobile.
+- Body text ≥ 16px on mobile.
+- Never `display: none` meaningful content on mobile — restructure or accordion instead. The exception is decorative-only elements (purely visual, no info value).
 
-## 6. Tailwind-first rule
+## 7. Tailwind-first rule
 
 - Use Tailwind utility classes for everything.
 - Custom CSS only when Tailwind can't express it (animations, complex selectors, third-party overrides). Put it in `assets/css/source/custom.css` under a clearly named class.
@@ -79,9 +106,21 @@ NEVER skip phase 1. NEVER do both phases in one go unless the user explicitly sa
 - Brand colors come from `@theme` (Tailwind 4) → use `bg-primary`, `text-secondary`, `font-brand`. Never hex literals in markup unless flagged as deviations.
 - **If a Tailwind class "doesn't compile" on the live page, ASK the user before inlining CSS as a workaround.** The Tailwind watcher (`npm run watch`) sometimes pauses silently when the dev's machine stalls. The first response is *not* to write custom CSS — it's to ask: "I notice `<class>` isn't compiling. Is `npm run watch` still running? It may have paused — please restart it and confirm whether the class now applies." Only inline CSS if the user confirms the watcher is healthy and the class still doesn't resolve.
 
-## 7. Image and SVG rules
+## 8. Image and SVG rules
 
 **Native HTML `<img>` and `<picture>`.** WebP conversion is handled by an image optimization plugin (ShortPixel / EWWW / Imagify / equivalent) — never generated in PHP.
+
+### Asset fidelity from Figma (NON-NEGOTIABLE)
+
+These rules apply when fetching assets via the Figma MCP:
+
+1. **If Figma says it's an SVG, it stays an SVG.** Never rasterize a vector asset to PNG/JPG. Vectors stay crisp at any size; raster conversion loses that and bloats the file. The only exception: hand-drawn illustrations Figma exports as 200KB+ SVGs that are smaller as a compressed JPEG — flag the trade-off and ask the user.
+
+2. **Preserve transparency.** If the source frame has a transparent background, export PNG (or WebP) with alpha. Never bake in a white/solid background "just to be safe." If Figma shows transparency, the live site shows transparency. Composite layouts where the asset overlays a section background depend on this.
+
+3. **Composite frames stay composite.** When a designer groups multiple elements into one frame (e.g. a hero illustration with a person + decorative shapes + text overlay rendered together), treat it as a single asset. Don't try to extract child layers as separate HTML elements unless the brief explicitly says so — sub-pixel drift from the designer's intent is the result.
+
+4. **Export at 2× when possible** for retina sharpness, then let the image-optimization plugin downscale/WebP. Note `mcp__Figma__get_screenshot` caps at 1024px max edge — that's for visual cross-reference only. For real assets, use Figma's PNG/SVG export at 2× via the MCP or ask the user for the export.
 
 The ONLY helpers that exist:
 - `aiims_img($path, $alt, $class)` — for STATIC theme images (logo, decorative shapes). Outputs an `<img>` tag with auto width/height read from the file. Use only for assets that ship with the theme.
@@ -144,8 +183,10 @@ if ($img) :
 
 ### SVG rules — three patterns
 
-**Pattern A — ACF textarea (preferred for icons that need theming).**
-Editor pastes raw `<svg>...</svg>` markup into a textarea field. Render with `wp_kses($svg, aiims_svg_kses())`. The SVG can use `fill="currentColor"` so the parent `text-*` class themes it.
+**Preference order:** Pattern A (textarea) → Pattern C (inline) → Pattern B (image upload). Image upload is the last resort, not the default. Always keep SVG as SVG; never rasterize unless the file is genuinely smaller as raster (rare, hand-drawn illustration territory — surface the trade-off and ask the user).
+
+**Pattern A — ACF textarea (DEFAULT for editor-changeable SVGs).**
+Editor pastes raw `<svg>...</svg>` markup into a textarea field. Render with `wp_kses($svg, aiims_svg_kses())`. The SVG can use `fill="currentColor"` so the parent `text-*` class themes it. This is the default for any per-page SVG because it preserves theming control and keeps the asset vector-crisp.
 
 ```php
 <?php $icon = get_sub_field('icon_svg'); if ($icon) : ?>
@@ -155,8 +196,8 @@ Editor pastes raw `<svg>...</svg>` markup into a textarea field. Render with `wp
 <?php endif; ?>
 ```
 
-**Pattern B — ACF image field (SVG file uploaded via media library).**
-Use when the SVG doesn't need theming (e.g. brand logo with fixed colors). Output as `<img>`:
+**Pattern B — ACF image field (SVG file uploaded via media library).** Last-resort fallback.
+Use ONLY when Pattern A is impractical: brand logo with fixed colors that doesn't need theming, very large complex SVG the editor can't reasonably paste, or the editor explicitly prefers file uploads. Output as `<img>`:
 
 ```php
 <?php $logo = get_sub_field('logo'); if ($logo) : ?>
@@ -184,12 +225,15 @@ For icons used everywhere, never editable, no need for ACF. Just paste the SVG d
 
 ### Decision tree for SVGs
 
-- Editor needs to change it per page → **Pattern A** (textarea, theming via currentColor)
-- Editor needs to change it per page but no theming → **Pattern B** (image upload)
+- Editor needs to change it per page → **Pattern A** (textarea, theming via currentColor) — DEFAULT
+- Editor needs to change it per page, complex SVG paste impractical → **Pattern B** (image upload) — last resort
+- Brand logo with fixed colors, editor-changeable → **Pattern B** (image upload, theming not needed)
 - Theme-wide, never changes → **Pattern C** (inline directly in template)
-- Logo / brand mark used across site → **Pattern C** in header.php, footer.php (or static file via `aiims_img()`)
+- Logo / brand mark used across site, not editable → **Pattern C** in header.php / footer.php (or static file via `aiims_img()`)
 
-## 8. ACF JSON sync (manual workflow)
+**Never:** convert an SVG asset to a raster image (PNG/JPG) for ease. Vector stays vector. Exception requires user confirmation per the asset-fidelity rule above.
+
+## 9. ACF JSON sync (manual workflow)
 
 ACF Pro auto-syncs from `acf-json/<group-id>.json` when the file's `modified` timestamp is newer than the DB. The user controls the moment of sync via WP Admin → Custom Fields → Field Groups → "Sync changes".
 
@@ -202,7 +246,7 @@ When editing an existing group: read it, merge new fields (**preserve existing `
 
 For Flexible Content layouts on the default template: append the new layout to `acf-json/group_default_template_sections.json` `fields[0].layouts`. One shared group; new section types ADD layouts, don't create new groups.
 
-## 9. Code style
+## 10. Code style
 
 - Minimal comments. The user wants to read and edit this themselves. Comments only when the intent isn't obvious from the code.
 - PHP follows WordPress coding standards (4-space indent, snake_case functions).
@@ -211,7 +255,7 @@ For Flexible Content layouts on the default template: append the new layout to `
 - Always guard ACF output: `if ($field) :` / `if (have_rows('x')) :`.
 - Prefer `<?= ?>` short echo tags inside markup, full `<?php ?>` for logic blocks.
 
-## 10. File structure inside the theme
+## 11. File structure inside the theme
 
 ```
 wp-content/themes/<theme>/
@@ -242,7 +286,7 @@ wp-content/themes/<theme>/
 └── style.css
 ```
 
-## 11. Skills, agents, commands
+## 12. Skills, agents, commands
 
 These are auto-discovered from `skills/*/SKILL.md`, `agents/*.md`, and `commands/*.md` frontmatter. Open those folders for the current set. Day-to-day, you mostly use:
 
@@ -252,7 +296,7 @@ These are auto-discovered from `skills/*/SKILL.md`, `agents/*.md`, and `commands
 - `/pixel-check [name]` → live-vs-Figma diff
 - `/ship-check` → a11y + perf + QA + ACF sync state before deploy
 
-## 12. Slash commands
+## 13. Slash commands
 
 - `/setup-claude` — first-time bootstrap (self-deletes after success)
 - `/build <name> <figma-url>` — chained: implement → pause for approval → make-dynamic
@@ -263,7 +307,7 @@ These are auto-discovered from `skills/*/SKILL.md`, `agents/*.md`, and `commands
 - `/pixel-check [section-name]` — compare live render to Figma
 - `/ship-check` — pre-deploy: a11y + perf + QA + ACF JSON sync state
 
-## 13. What NOT to do
+## 14. What NOT to do
 
 - Don't build a full page in one shot.
 - Don't go straight to ACF — static phase first, always.
@@ -275,7 +319,7 @@ These are auto-discovered from `skills/*/SKILL.md`, `agents/*.md`, and `commands
 - Don't skip escaping or `width`/`height` on `<img>` (CLS).
 - Don't add features the user didn't ask for (custom post types, etc.).
 
-## 14. When in doubt
+## 15. When in doubt
 
 Ask. The user prefers honesty over guessing. Examples:
 

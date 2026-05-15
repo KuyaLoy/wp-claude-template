@@ -782,6 +782,16 @@ git push</pre>
 
       <div class="space-y-3">
 
+        <div class="card border-purple-300">
+          <h3 class="font-semibold text-slate-900 text-sm mb-2">🎨 Claude stops mid-build: "Figma MCP is disconnected"</h3>
+          <p class="text-xs text-slate-700"><strong>By design</strong> per CLAUDE.md §4. The template refuses to build from screenshots — they're downscaled to 1024px and lose token-level precision, producing inconsistent code across sections. Reconnect:</p>
+          <pre class="code text-xs mt-2" data-copy>claude mcp list                # verify what's connected
+claude mcp add figma           # if figma is missing</pre>
+          <p class="text-xs text-slate-700 mt-2">Restart your <code>claude</code> session, then back in chat:</p>
+          <pre class="code text-xs mt-2" data-copy>continue</pre>
+          <p class="text-[11px] text-slate-500 mt-2">Claude resumes the build. The hard-stop is a feature — never override it casually. See <a href="../INSTALL-MCPS.md" class="text-purple-600 hover:underline">INSTALL-MCPS.md</a>.</p>
+        </div>
+
         <div class="card">
           <h3 class="font-semibold text-slate-900 text-sm mb-2">Tailwind class isn't applying</h3>
           <p class="text-xs text-slate-700">First — is <code>npm run watch</code> still running? Watcher silently pauses if PC stalls. Close terminal and restart:</p>

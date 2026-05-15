@@ -117,7 +117,11 @@ mcp__Figma__get_design_context
 mcp__Figma__get_screenshot
 ```
 
-If `mcp__Figma__*` tools aren't available (user hasn't installed the Figma MCP yet), skip auto-detection and fall through to the placeholder-colors path in step 3.
+If `mcp__Figma__*` tools aren't available, do NOT proceed to auto-detect brand tokens from a screenshot — that would seed wrong values into Tailwind's `@theme` block and propagate inconsistency to every section build. Instead, fall through to step 3 (placeholder colors) and tell the user:
+
+> "The Figma MCP isn't connected, so I can't auto-detect your brand colors and container width right now. I'm using placeholders so you can finish setup, but as soon as you connect Figma (Cowork: Settings → Connectors → Figma. Claude Code: `claude mcp add figma`), run `tailwind-theme-sync from <figma-url>` and I'll pull the real tokens."
+
+Setup continues with placeholders. Real values get filled in later, once Figma is available. This is consistent with CLAUDE.md §4 (Figma as source of truth — NON-NEGOTIABLE).
 
 Extract:
 - **Primary** — most-used CTA / brand color (variable names with "primary", "brand", "main")

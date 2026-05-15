@@ -5,7 +5,9 @@ description: Repair or rework SVG exports from Figma that are truncated, oversiz
 
 # Handle Messy Figma SVG
 
-Figma SVG exports are unreliable. Common issues + fixes:
+Figma SVG exports are unreliable. Common issues + fixes.
+
+**Per CLAUDE.md §8 (asset fidelity — NON-NEGOTIABLE):** the goal is always to keep the asset as SVG. Rasterize to PNG only as a last resort when the SVG is genuinely larger than a compressed JPEG (rare — hand-drawn illustration territory), and even then surface the trade-off to the user before doing it.
 
 ## Issue: Truncated path
 

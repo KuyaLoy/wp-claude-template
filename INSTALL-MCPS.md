@@ -116,6 +116,15 @@ It will list the tool prefixes that are currently usable. Compare against:
 
 ## Troubleshooting
 
+**Claude stops mid-build saying "Figma is disconnected — please reconnect"**
+This is intentional behavior per `CLAUDE.md` §4 (Figma as source of truth — NON-NEGOTIABLE). The template refuses to build from a screenshot because screenshots are downscaled to 1024px max edge and lose precision on spacing, colors, fonts, and tokens — sections built that way drift inconsistently. Fix:
+
+1. **Cowork:** Settings → Connectors → Figma → click Reconnect. If that fails, restart Cowork entirely and reopen the project folder.
+2. **Claude Code:** `claude mcp list` to check status, `claude mcp add figma` to reinstall if missing. Restart your `claude` session.
+3. Back in the chat, type `continue` — Claude resumes the build at the same step without losing work.
+
+The only way to override is explicitly: "build from this screenshot only, I accept reduced accuracy." Even then Claude will flag every screenshot-derived value as "verify when Figma is reconnected."
+
 **`mcp__Figma__get_design_context` returns "node not found"**
 The Figma URL needs to point at a specific node, not just a file. Click the frame in Figma, copy the link from the share menu — it should include `?node-id=...`. Without that, the MCP doesn't know which frame to fetch.
 

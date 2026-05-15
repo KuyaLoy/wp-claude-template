@@ -34,6 +34,48 @@ Aspirational features identified during retros that haven't landed yet. Each wil
 
 ---
 
+## [3.5.1] — 2026-05-15
+
+**Design fidelity + zero-friction build trigger.** Three retro-driven rules layered on top of v3.5.0: SVG preference order, asset transparency / composite-frame fidelity, and a fully brief-optional build flow with explicit responsive defaults.
+
+### Added
+
+- **CLAUDE.md §8 "Asset fidelity from Figma (NON-NEGOTIABLE)"** — new sub-section in Image and SVG rules. Four rules: (1) SVGs stay SVGs (never rasterize), (2) preserve transparency on PNG/WebP exports, (3) composite frames stay composite (don't break grouped designer layouts into separate elements), (4) export at 2× where possible for retina sharpness.
+- **CLAUDE.md §8 SVG preference order made explicit:** Pattern A (textarea, currentColor theming) is now the DEFAULT for editor-changeable SVGs; Pattern B (image upload) is documented as last-resort fallback. Pattern C (inline) for theme-wide static. New "Never rasterize" closing line.
+- **Brief files now auto-created.** If the user triggers a build and `briefs/<name>.md` doesn't exist, `implement-figma-section` populates one from chat context + Figma `get_design_context` data following `briefs/_template.md` structure. Non-technical users no longer have to create a file before triggering a build; the paper trail still gets created for retros.
+- **More token-efficient trigger forms:** `@home-hero <url>` (no `.md` needed), bare `home-hero <url>` (no `@`), and plain-English "Build the home hero from this Figma: <url>" all work and resolve to the same place.
+- New "Brief files (optional — auto-created)" callout in `cheatsheet/cowork.html` explaining the auto-creation, and the walkthrough no longer has "Write a brief file" as a required step. Step count reduced from 8 to 7.
+
+### Changed
+
+- **CLAUDE.md §6 Responsive rules made explicit:** one Figma URL = Claude builds desktop AND auto-makes it responsive in the same pass, surfaces every mobile assumption in the reply for the user to confirm by previewing. No mid-build pause. Two URLs = `match-mobile-desktop` pixel-matches both.
+- **`implement-figma-section/SKILL.md` step 1 rewritten** to "Resolve / auto-create the section brief" — codifies the auto-create flow including the lookup of `briefs/_template.md` for structure, the one-question fallback when template ownership can't be inferred, and the user-facing "Wrote briefs/<name>.md with..." confirmation line.
+- **`agents/frontend-builder.md` rule 5 expanded** to inline the SVG preference order and asset-fidelity rules (defers to CLAUDE.md §8 for the source of truth).
+- **`skills/handle-messy-figma-svg/SKILL.md` preamble** reinforces that the skill's goal is to keep SVG as SVG; rasterization requires explicit user consent per the asset-fidelity rule.
+- **`cheatsheet/cowork.html` walkthrough updated:** 7 steps instead of 8 (brief step removed), responsive-link logic explained inline at step 1, prompts table updated to drop `.md` from shorthand examples.
+
+---
+
+## [3.5.0] — 2026-05-15
+
+**Figma-as-source-of-truth rule (NON-NEGOTIABLE).** Post-Phase-5 retro change: real production-level rule promoted from the user's own friction. Claude will no longer fall back to building from screenshots when the Figma MCP disconnects — it hard-stops and asks for reconnection. Same workflow, more consistency, no more drift across sections.
+
+### Added
+
+- **CLAUDE.md section 4: "Figma as source of truth (NON-NEGOTIABLE)"** — new third NON-NEGOTIABLE section alongside the two-template pattern (§2) and the section-by-section workflow (§3). Codifies: Figma MCP is the design data pipeline; screenshots are visual reference only, never the primary source; if MCP is unavailable, Claude STOPS and asks for reconnection rather than guessing from a screenshot. Includes the exact reply Claude should give the user on disconnect.
+- New Figma-disconnect troubleshooting cards in both cheatsheets (`cowork.html` and `code.html`) explaining the hard-stop as a feature, not a bug, with platform-specific reconnect steps.
+- New "Claude stops mid-build" entry at the top of `INSTALL-MCPS.md` Troubleshooting section, with the override syntax for the rare case where someone genuinely has no Figma access.
+
+### Changed
+
+- **`implement-figma-section/SKILL.md` step 3 rewritten.** The previous "If Figma MCP isn't available, ask the user to paste a screenshot inline" — exactly the inconsistent behavior the rule is preventing — is gone. Replaced with the hard-stop reply + reconnect instructions for both platforms. Override clause preserved for explicit user opt-out, with mandatory deviation-flagging.
+- **`agents/frontend-builder.md` step 2 rewritten.** Same change. Defers explicitly to CLAUDE.md §4 so future skills don't have to repeat the rule.
+- **`skills/setup-claude/SKILL.md` Figma probe behavior changed.** During initial setup, if Figma MCP is unavailable, Claude no longer attempts screenshot-driven brand-token detection (which would have seeded wrong values into Tailwind's `@theme` block). Instead it falls through to placeholders and tells the user to run `tailwind-theme-sync from <figma-url>` once Figma is connected.
+- CLAUDE.md section 5 (Pixel-perfect rules) now reads "STRICT — depends on §4" so the dependency on Figma-as-source-of-truth is explicit.
+- CLAUDE.md renumbered: previous §4-§14 are now §5-§15. Section content unchanged.
+
+---
+
 ## [3.4.0] — 2026-05-15
 
 **Phase 5 cheatsheet split — major release.** The single `cheatsheet/index.html` is now three files, audience-segmented. Non-technical users get a hand-holding mode; developers keep the technical reference. End of the polish roadmap.

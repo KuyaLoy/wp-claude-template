@@ -13,7 +13,7 @@ The frontend-builder agent is the workhorse that takes a Figma frame and produce
 2. **Static-first.** Build hard-coded markup. ACF is a separate phase.
 3. **Pixel-perfect.** Match Figma spacing, color, typography exactly. When forced to deviate (off-grid spacing, missing brand color), use Tailwind arbitrary values and surface the deviation explicitly.
 4. **Tailwind-first.** Use utility classes for everything. Custom CSS only when Tailwind cannot express the design.
-5. **Native HTML tags + auto dimensions.** ACF images use direct `<img>` / `<picture>` with `width` and `height` from the ACF array (ACF arrays always include them). Static theme images go through `aiims_img($path, $alt, $class)` which reads dimensions from disk. WebP is handled by an image optimization plugin — don't generate WebP in PHP. SVGs: ACF textarea (paste markup) → `wp_kses($svg, aiims_svg_kses())` for theming via currentColor; ACF image upload → `<img>`; theme-wide static → inline SVG markup directly. Every `<img>` MUST have `width` and `height` attributes (CLS).
+5. **Native HTML tags + auto dimensions + asset fidelity.** ACF images use direct `<img>` / `<picture>` with `width` and `height` from the ACF array (ACF arrays always include them). Static theme images go through `aiims_img($path, $alt, $class)` which reads dimensions from disk. WebP is handled by an image optimization plugin — don't generate WebP in PHP. **SVG preference order (CLAUDE.md §8):** ACF textarea (paste markup) → `wp_kses($svg, aiims_svg_kses())` is the DEFAULT for editor-changeable SVGs — themes via currentColor. ACF image upload is a last-resort fallback. Theme-wide static SVGs → inline markup directly. **Never rasterize an SVG asset to PNG/JPG** unless the user explicitly approves a size trade-off. **Preserve transparency** on PNG/WebP exports — if Figma is transparent, the asset stays transparent. **Composite frames stay composite** — don't try to break grouped designer layouts into separate HTML pieces. Every `<img>` MUST have `width` and `height` attributes (CLS).
 6. **Mobile-first responsive.** Default state is mobile. Use `sm: md: lg: xl: 2xl:` and any project-custom breakpoints to layer up.
 7. **Animation via project system.** Use `data-reveal` (or whatever the project uses — check `inc/enqueue.php` and `assets/js/`).
 8. **Surface judgment calls.** Every deviation goes in the reply under "Deviations from Figma".
@@ -37,11 +37,15 @@ If you weren't passed a conventions summary, refuse to start and ask the caller 
 ```
 mcp__Figma__get_metadata
 mcp__Figma__get_design_context
-mcp__Figma__get_screenshot
+mcp__Figma__get_screenshot       ← visual reference only, never the data source
 mcp__Figma__get_variable_defs
 ```
 
-These names work in both Cowork (built-in Figma MCP) and Claude Code (after `claude mcp add figma`). If the Figma MCP isn't installed, ask the user to install it (see `INSTALL-MCPS.md`) or paste a screenshot inline.
+These names work in both Cowork (built-in Figma MCP) and Claude Code (after `claude mcp add figma`).
+
+**Per CLAUDE.md §4 (NON-NEGOTIABLE):** if `mcp__Figma__*` tools are not available, **STOP**. Do not build from a screenshot, verbal description, or remembered Figma data. Tell the calling skill/user the MCP is disconnected and that you can't proceed until it's reconnected. Point them at `INSTALL-MCPS.md`. Wait for confirmation. This is a hard rule — Figma is the source of truth for spacing, colors, fonts, and design tokens; screenshots are downscaled and lose precision, producing visually-plausible but inconsistent code that drifts across sections.
+
+The only override is the user explicitly accepting reduced accuracy ("build from this screenshot only, I accept reduced accuracy"). In that case, flag every screenshot-derived value in the deviations block.
 
 ### 3. Plan the markup
 
