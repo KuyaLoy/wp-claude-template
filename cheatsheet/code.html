@@ -352,17 +352,15 @@ Tweaks (deviations from Figma):
             <tr><th class="py-2 pr-4 text-left">Command</th><th class="py-2 pr-4 text-left">Use for</th><th class="py-2 text-left">Example</th></tr>
           </thead>
           <tbody class="divide-y divide-slate-100 text-slate-700">
-            <tr><td class="py-2 pr-4 align-top"><code>/setup-claude</code></td><td class="py-2 pr-4 align-top">One-time per-project setup</td><td class="py-2 align-top text-[11px] text-slate-500">First run on a new project</td></tr>
-            <tr><td class="py-2 pr-4 align-top"><code>/implement</code></td><td class="py-2 pr-4 align-top">Build static section from brief + Figma</td><td class="py-2 align-top text-[11px] text-slate-500"><code>/implement briefs/hero.md &lt;url&gt;</code></td></tr>
+            <tr><td class="py-2 pr-4 align-top"><code>/setup-claude</code></td><td class="py-2 pr-4 align-top">One-time per-project setup</td><td class="py-2 align-top text-[11px] text-slate-500">First run on a new project; self-deletes after</td></tr>
+            <tr class="bg-purple-50"><td class="py-2 pr-4 align-top text-purple-700"><code>/build</code></td><td class="py-2 pr-4 align-top">Chained: implement → pause → make-dynamic → seed</td><td class="py-2 align-top text-[11px] text-purple-700"><code>/build hero &lt;url&gt; &lt;mobile-url&gt;</code></td></tr>
+            <tr><td class="py-2 pr-4 align-top"><code>/implement</code></td><td class="py-2 pr-4 align-top">Build static section from brief + Figma</td><td class="py-2 align-top text-[11px] text-slate-500"><code>/implement hero &lt;url&gt;</code></td></tr>
             <tr><td class="py-2 pr-4 align-top"><code>/make-dynamic</code></td><td class="py-2 pr-4 align-top">Swap static section → ACF-driven</td><td class="py-2 align-top text-[11px] text-slate-500"><code>/make-dynamic hero</code></td></tr>
+            <tr class="bg-emerald-50"><td class="py-2 pr-4 align-top text-emerald-700"><code>/seed</code> <span class="text-[10px]">v3.6</span></td><td class="py-2 pr-4 align-top">One-shot self-deleting data populator</td><td class="py-2 align-top text-[11px] text-emerald-700"><code>/seed hero heading=..., body=...</code></td></tr>
             <tr><td class="py-2 pr-4 align-top"><code>/add-section</code></td><td class="py-2 pr-4 align-top">Register new flex layout</td><td class="py-2 align-top text-[11px] text-slate-500"><code>/add-section hero</code></td></tr>
             <tr><td class="py-2 pr-4 align-top"><code>/create-template</code></td><td class="py-2 pr-4 align-top">New page/archive/single template</td><td class="py-2 align-top text-[11px] text-slate-500">—</td></tr>
             <tr><td class="py-2 pr-4 align-top"><code>/pixel-check</code></td><td class="py-2 pr-4 align-top">Live vs Figma comparison</td><td class="py-2 align-top text-[11px] text-slate-500"><code>/pixel-check hero</code></td></tr>
-            <tr><td class="py-2 pr-4 align-top"><code>/ship-check</code></td><td class="py-2 pr-4 align-top">Pre-deploy audit</td><td class="py-2 align-top text-[11px] text-slate-500">a11y + perf + QA</td></tr>
-            <tr class="bg-emerald-50"><td class="py-2 pr-4 align-top text-emerald-700"><code>/audit</code> <span class="text-[10px]">v3</span></td><td class="py-2 pr-4 align-top">Single-pass link/phone/page audit</td><td class="py-2 align-top text-[11px] text-emerald-700">v3 — combined audit tool</td></tr>
-            <tr class="bg-emerald-50"><td class="py-2 pr-4 align-top text-emerald-700"><code>/scaffold-quote-modal</code> <span class="text-[10px]">v3</span></td><td class="py-2 pr-4 align-top">Modal + JS + CSS + CF7 + thank-you</td><td class="py-2 align-top text-[11px] text-emerald-700">v3 — bundled scaffold</td></tr>
-            <tr class="bg-emerald-50"><td class="py-2 pr-4 align-top text-emerald-700"><code>/scaffold-cpt</code> <span class="text-[10px]">v3</span></td><td class="py-2 pr-4 align-top">CPT + single + archive + listing</td><td class="py-2 align-top text-[11px] text-emerald-700">v3 — bundled</td></tr>
-            <tr class="bg-emerald-50"><td class="py-2 pr-4 align-top text-emerald-700"><code>/redirect-rename</code> <span class="text-[10px]">v3</span></td><td class="py-2 pr-4 align-top">Slug rename + auto-301</td><td class="py-2 align-top text-[11px] text-emerald-700">v2</td></tr>
+            <tr><td class="py-2 pr-4 align-top"><code>/ship-check</code></td><td class="py-2 pr-4 align-top">Pre-deploy audit (a11y + perf + QA)</td><td class="py-2 align-top text-[11px] text-slate-500">Run before deploy</td></tr>
           </tbody>
         </table>
       </div>
@@ -526,7 +524,16 @@ if ( $link && ! empty( $link['url'] ) ) : ?&gt;
         <span class="text-2xl">🌱</span>
         <h2 class="text-xl font-bold text-slate-900">Seeder template — one-shot, self-deleting</h2>
       </div>
-      <p class="text-sm text-slate-600 mb-4">Save to <code>inc/seed-&lt;feature&gt;.php</code>, register in <code>functions.php</code> seeders array, trigger via <code>/?aiims_seed=&lt;slug&gt;</code> as admin.</p>
+      <p class="text-sm text-slate-600 mb-4">Auto-loaded by <code>inc/custom-functions.php</code> via glob of <code>inc/seed-*.php</code>. Trigger via <code>/?aiims_seed=&lt;slug&gt;</code> as admin. Self-deletes on success.</p>
+
+      <div class="card border-emerald-300 mb-4">
+        <p class="text-sm font-bold text-emerald-700 mb-1">✨ As of v3.6.0 — first-class skill</p>
+        <p class="text-xs text-slate-700">Don't hand-write seeders. Use the <code>seed-data</code> skill / <code>/seed</code> command:</p>
+        <pre class="code text-xs mt-2" data-copy>/seed home-hero heading=Welcome, body=..., cta=Get a quote/#quote</pre>
+        <p class="text-[11px] text-slate-500 mt-2">Or plain English: "Seed the home hero with: heading=..., body=...". Claude reads the section's ACF fields, writes the seeder from <code>snippets/seeder-template.php</code>, tells you the URL.</p>
+      </div>
+
+      <p class="text-xs text-slate-500 mb-2">The boilerplate Claude uses (also in <code>snippets/seeder-template.php</code> if you ever need to hand-write one):</p>
 
       <div class="card">
         <pre class="code text-xs" data-copy>&lt;?php

@@ -28,29 +28,42 @@ The default template's job is just to loop over `flexible_sections` and `include
 
 We do NOT build full pages at once. We build **one section at a time**.
 
-The trigger is: **`@briefs/<section>.md <figma-url>`**
+The trigger is any of: **`@<name> <figma-url>`** · `@<name>.md <urls>` · `<name> <urls>` · plain English ("Build the home hero from this Figma: <url>"). Brief files at `briefs/<name>.md` are OPTIONAL — `implement-figma-section` auto-creates one from chat context if missing.
 
-The user creates a `briefs/<section>.md` file with notes (use `briefs/_template.md` as the starting point). When they paste that reference plus a Figma URL, the `implement-figma-section` skill loads.
+### Five steps per section: static → cross-check → dynamic → sync → seed
 
-### Two phases per section: static → dynamic
-
-**Phase 1 — Static (default):**
+**Step 1 — Static:**
 - Build `templates/parts/section-{name}.php` with hard-coded markup that pixel-matches Figma
 - All copy, image paths, link URLs are inline strings
 - No `get_field()`, no `have_rows()`, no ACF anywhere
 - Image assets saved into `assets/images/{section-name}/<filename>.png|jpg|svg`
 - This phase is for verifying pixel-perfect markup vs. Figma without ACF complications
 
-**Phase 2 — Dynamic (only after user approves the static):**
-- The user says "make {section} dynamic"
+**Step 2 — Cross-check:**
+- Run `/pixel-check <name>` (or compare manually) to diff live render against the Figma frame
+- Surface deviations: spacing, color, typography, asset quality, mobile breakpoints
+- Iterate Step 1 until pixel-perfect
+
+**Step 3 — Dynamic (only after user approves the static):**
+- The user says "make {section} dynamic" (or runs `/build` which chains automatically)
 - The `make-section-dynamic` skill runs:
   1. Designs the ACF field group (Flexible Content layout for default template, or standalone group for homepage template)
   2. Writes the JSON to `acf-json/group_{slug}.json`
   3. Replaces inline strings with `get_sub_field()` / `get_field()` calls
   4. Wraps every output with conditional guards: `if ($field) : ... endif;`
-  5. Reminds the user to go to **WP Admin → ACF → Field Groups → Sync changes**
 
-NEVER skip phase 1. NEVER do both phases in one go unless the user explicitly says "build static + dynamic together".
+**Step 4 — Sync:**
+- The user goes to **WP Admin → Custom Fields → Field Groups → click "Sync changes"**
+- ACF Pro reads the JSON `modified` timestamp and applies the schema to the DB
+- After this, the editable fields appear in the page editor
+
+**Step 5 — Seed:**
+- The user says "Seed the {section} with: heading=..., body=..." (or runs `/seed <section>`)
+- The `seed-data` skill writes `theme/inc/seed-{slug}.php` from `snippets/seeder-template.php` — a one-shot self-deleting PHP file that hooks `template_redirect`, checks `?aiims_seed=<slug>`, populates ACF fields via `update_field()`, then `unlink()`s itself
+- The user hits `http://<project>.test/?aiims_seed=<slug>` while logged in as admin → seeder runs once → file deletes itself
+- Versioned in git, re-runnable by `git checkout`, admin-gated, no leftover endpoints in production
+
+NEVER skip Step 1 (static). NEVER do Steps 1+3 in one go unless the user explicitly says "build static + dynamic together". Seeding is OPTIONAL but encouraged — it eliminates manual content entry.
 
 ## 4. Figma as source of truth (NON-NEGOTIABLE)
 

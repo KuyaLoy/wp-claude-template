@@ -55,7 +55,23 @@ When the user approves, invoke `make-section-dynamic` on `$1`. The skill:
 4. Bumps `modified` timestamp on the parent group
 5. Replies with sync instructions
 
-### Step 4 — Final reply
+### Step 4 — Offer to seed (optional)
+
+After the sync prompt, ask the user once:
+
+```
+Want me to seed real data too? Reply with the content like:
+
+  heading=Welcome, subheading=..., body=..., cta=Get a quote/#quote
+
+Or "skip" to fill in WP Admin manually.
+```
+
+If the user provides data, invoke the `seed-data` skill — it writes `theme/inc/seed-$1.php` from `snippets/seeder-template.php` and tells the user to hit `/?aiims_seed=$1` while logged in as admin.
+
+If the user says "skip" / "later" / "manually" → proceed to Step 5 (final reply).
+
+### Step 5 — Final reply
 
 ```
 ## /build complete: $1
@@ -68,6 +84,10 @@ acf-json/<group-file>.json ✓ — layout `<name>` added/updated, modified bumpe
 
 ### YOU MUST SYNC
 WP Admin → Custom Fields → Field Groups → click "Sync changes"
+
+### Seeded (if Step 4 ran)
+theme/inc/seed-$1.php ✓ — hit http://<project>.test/?aiims_seed=$1 as admin to populate.
+Or: skipped, fill in WP Admin manually.
 
 ### Then
 Edit the page → fill in ACF fields → save → frontend renders.

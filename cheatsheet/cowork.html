@@ -371,8 +371,19 @@
         <div class="card flex gap-4 items-start">
           <span class="step-num" style="background:#059669">7</span>
           <div class="flex-1">
+            <h3 class="font-semibold text-slate-900 text-sm">Seed the data (optional but recommended)</h3>
+            <p class="mt-1 text-xs text-slate-600">Instead of typing the content into WP Admin by hand, you can ask Claude to populate it for you. Just say:</p>
+            <pre class="chat mt-2">Seed the home hero with: heading=Welcome to AIIMS, subheading=Real estate marketing for the modern agent, cta=Get a quote/#quote</pre>
+            <p class="mt-2 text-xs text-slate-600">Claude writes a one-shot file at <code>theme/inc/seed-home-hero.php</code> and gives you a URL to hit (like <code>http://yourproject.test/?aiims_seed=home-hero</code>). Visit that URL while logged in as admin → the data populates → the file deletes itself. Done.</p>
+            <p class="mt-2 text-xs text-slate-500"><strong>Why use it:</strong> if you have 6 sections to populate, seeding takes one prompt per section instead of clicking through WP Admin for each. Also great for re-runs (just <code>git checkout</code> the seeder file and hit the URL again).</p>
+          </div>
+        </div>
+
+        <div class="card flex gap-4 items-start">
+          <span class="step-num" style="background:#059669">8</span>
+          <div class="flex-1">
             <h3 class="font-semibold text-slate-900 text-sm">🎉 Done — onto the next section</h3>
-            <p class="mt-1 text-xs text-slate-600">Repeat steps 1-6 for the next section (services, about, etc.). The template understands the workflow, so steps get faster as you go.</p>
+            <p class="mt-1 text-xs text-slate-600">Repeat steps 1-7 for the next section (services, about, etc.). The template understands the workflow, so steps get faster as you go.</p>
           </div>
         </div>
 
@@ -423,6 +434,12 @@
           <p class="text-sm font-semibold text-slate-900 mb-1">Just convert an already-built static to dynamic</p>
           <pre class="chat" data-copy>Make &lt;section&gt; dynamic</pre>
           <p class="mt-2 text-xs text-slate-500">Run this after you've confirmed the static looks good.</p>
+        </div>
+
+        <div class="card">
+          <p class="text-sm font-semibold text-slate-900 mb-1">Seed real content into a section</p>
+          <pre class="chat" data-copy>Seed the &lt;section&gt; with: heading=..., body=..., cta=Get a quote/#quote</pre>
+          <p class="mt-2 text-xs text-slate-500">Claude writes a one-shot file. You hit the URL Claude gives you (as admin). Data populates. File deletes itself.</p>
         </div>
 
         <div class="card">

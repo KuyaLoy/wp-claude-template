@@ -34,6 +34,28 @@ Aspirational features identified during retros that haven't landed yet. Each wil
 
 ---
 
+## [3.6.0] — 2026-05-15
+
+**Seed as a first-class workflow step.** Retro-driven: the seeder pattern was used 25+ times on JG Vertical but never codified into the template. Now `static → cross-check → dynamic → sync → seed` is the full 5-step section workflow, with skills/commands/snippets supporting the seed step end-to-end.
+
+### Added
+
+- **`snippets/seeder-template.php`** — boilerplate for a one-shot self-deleting data seeder. Hooks `template_redirect`, checks `?aiims_seed=<slug>`, admin-gated, populates ACF fields via `update_field()`, `unlink()`s itself after success. Includes commented examples for plain fields, link fields, image fields, repeaters, and flexible content rows.
+- **`snippets/custom-functions.php` glob loader** — auto-requires every `inc/seed-*.php` in the theme. Drop a seeder file in `inc/` and it's live. After the seeder unlinks itself, the glob no longer picks it up. Zero registration ceremony.
+- **`skills/seed-data/SKILL.md`** — the workflow skill. Triggers on plain-English ("Seed the home hero with: heading=..., body=...") or `/seed <section> <data>`. Reads the section's ACF field group to enumerate fields, maps user-provided data to field names, writes `theme/inc/seed-<slug>.php` from the boilerplate, tells the user the URL to hit. Pre-checks for sync state, ACF Pro active, target post existence.
+- **`commands/seed.md`** — `/seed <section> [data]` slash command wrapper. Plain English ("Seed the home hero with: ...") also works without the slash.
+- **CLAUDE.md §3 expanded from 2 phases to 5 steps:** static → cross-check → dynamic → sync → seed. Each step has explicit responsibilities. Seed is OPTIONAL but encouraged.
+- **`/build` now optionally chains through seed.** After the sync prompt, asks "want me to seed real data too?" — if user provides content, invokes `seed-data` skill. If user says skip, proceeds to final reply.
+- **`cheatsheet/cowork.html` walkthrough now 8 steps** (added Step 7: "Seed the data — optional but recommended") with plain-English example. New seed prompt card in the "What to type" section.
+- **`cheatsheet/code.html` seeders section updated:** v3.6 badge, points users at the new `/seed` command and `seed-data` skill as the canonical path. Hand-written boilerplate is now the "if you ever need to" fallback.
+- **`cheatsheet/code.html` commands table cleaned up:** added `/build` (was missing) and `/seed` (new). Removed four unreleased aspirational entries (`/audit`, `/scaffold-quote-modal`, `/scaffold-cpt`, `/redirect-rename`) that were misleadingly badged as "v3 shipped" — they remain in CHANGELOG `## [Unreleased]` where they belong.
+
+### Changed
+
+- The 4-step workflow (`static → ACF → sync → seed`) the user asked about now matches reality. Previously seed was only mentioned in `RETRO.md` and `code.html` as a pattern, not as a workflow step.
+
+---
+
 ## [3.5.1] — 2026-05-15
 
 **Design fidelity + zero-friction build trigger.** Three retro-driven rules layered on top of v3.5.0: SVG preference order, asset transparency / composite-frame fidelity, and a fully brief-optional build flow with explicit responsive defaults.

@@ -12,6 +12,20 @@
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/acf-setup.php';
 
+/**
+ * Auto-load any active one-shot data seeders at inc/seed-*.php
+ *
+ * The seeder pattern: each seeder is a self-contained file that hooks
+ * template_redirect, checks ?aiims_seed=<slug>, populates data, then
+ * unlink()s itself. After it self-deletes, this glob no longer picks it up.
+ *
+ * See snippets/seeder-template.php for the boilerplate and skills/seed-data/
+ * for the workflow Claude uses to write them.
+ */
+foreach (glob(__DIR__ . '/seed-*.php') as $seeder) {
+    require_once $seeder;
+}
+
 // Future additions go here, e.g.:
 // require_once __DIR__ . '/cpt-projects.php';
 // require_once __DIR__ . '/cpt-team.php';
