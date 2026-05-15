@@ -6,7 +6,9 @@ WordPress + ACF + Tailwind 4. Underscoretw stack. AIIMS Group build.
 - **Production:** {{PROD_URL}}
 - **Theme folder:** `wp-content/themes/{{THEME_SLUG}}/` (workspace root) → `theme/` is the actual WP theme
 
-> 📖 **Visual cheatsheet:** open `.claude/cheatsheet/index.html` in your browser for a clickable reference of all patterns, commands, and code snippets.
+> 📖 **Visual cheatsheets:** open `.claude/cheatsheet/index.html` in your browser to pick between two versions:
+> - **`cowork.html`** — hand-holding mode for editors, designers, project managers (no coding needed)
+> - **`code.html`** — full reference for developers (CLI, MCP install, ACF patterns, git, troubleshooting)
 
 ---
 

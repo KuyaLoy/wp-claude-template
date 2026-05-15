@@ -399,6 +399,13 @@ Open README.md anytime. First section:
 5. Make home-hero dynamic
 6. WP Admin → ACF → Sync changes
 7. Edit home page → fill ACF fields
+
+### Reference
+- 📖 **Visual cheatsheets:** open `.claude/cheatsheet/index.html` in a browser → pick between:
+  - `cowork.html` — hand-holding mode for non-developers
+  - `code.html` — full reference for developers
+- Project rules: `.claude/CLAUDE.md`
+- MCP install (if a tool stops working): `INSTALL-MCPS.md`
 ```
 
 ## ACF JSON sync — the timestamp mechanism (CRITICAL)

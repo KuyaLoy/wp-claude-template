@@ -34,6 +34,25 @@ Aspirational features identified during retros that haven't landed yet. Each wil
 
 ---
 
+## [3.4.0] — 2026-05-15
+
+**Phase 5 cheatsheet split — major release.** The single `cheatsheet/index.html` is now three files, audience-segmented. Non-technical users get a hand-holding mode; developers keep the technical reference. End of the polish roadmap.
+
+### Added
+
+- **`cheatsheet/cowork.html`** — brand-new hand-holding cheatsheet for editors, designers, project managers, anyone using Cowork (the desktop app) without coding background. Plain-English glossary (5 key terms), step-by-step first-time setup, a full walkthrough of building one section start to finish, common prompts to copy-paste, friendly troubleshooting, clear "when to call your dev" boundaries, examples of good vs bad prompts. ~600 lines.
+- **`cheatsheet/code.html`** — Claude-Code-specific (CLI/VSCode) reference. Adapted from the previous `index.html`: same comprehensive technical content (ACF patterns, seeders, git workflow, anti-patterns) plus a new MCP Install section at the top with the `claude mcp add figma` / `claude mcp add playwright` commands. Purple branding to differentiate from Cowork.
+- **`cheatsheet/index.html`** — replaced. Now a small picker page with two big cards (Cowork vs Code) and a "not sure?" hint. ~85 lines.
+- `snippets/README.template.md` now links both cheatsheets in the "Visual cheatsheets" callout near the top.
+- `setup-claude/SKILL.md` success summary now points the user at the cheatsheet picker (`cheatsheet/index.html`) with a one-line description of each version.
+
+### Changed
+
+- Cheatsheet branding split: **cyan** for Cowork (non-technical, friendly), **purple** for Claude Code (technical, dev-focused). Cross-links at top header and footer of each page so users can swap if they landed on the wrong one.
+- The "v1 archive" link in the previous cheatsheet sidebar is now removed (the v1 file was deleted in v3.1.0).
+
+---
+
 ## [3.3.0] — 2026-05-15
 
 **Phase 4 token-efficiency pass** — fewer keystrokes to trigger work, less context burn per session. The biggest day-to-day-feel change in the polish roadmap.
