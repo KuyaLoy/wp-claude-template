@@ -85,6 +85,17 @@ If user says "yes / no / yes" or just pastes a Figma URL → done. Move to setup
 
 ### 1. Detect theme structure
 
+Works in both **Cowork** (bash sandbox, paths under `/sessions/.../mnt/<workspace>/`) and **Claude Code** (host shell, paths relative to project root). The user should have already selected their theme directory as the workspace before running this skill.
+
+**Preferred (cross-platform):** use the Glob/Read tools — no bash needed, identical behavior on both platforms.
+
+```
+Glob: theme/style.css        → if found → IS_UNDERSCORETW=true
+Glob: style.css              → if found at root → IS_UNDERSCORETW=false
+```
+
+**Bash fallback** (still works in both, just uses shell):
+
 ```bash
 test -f theme/style.css && IS_UNDERSCORETW=true
 test -f style.css && test -f functions.php && IS_UNDERSCORETW=false
@@ -93,16 +104,20 @@ test -f style.css && test -f functions.php && IS_UNDERSCORETW=false
 For underscoretw: WP files at `theme/`, Tailwind tokens at `tailwind/tailwind-theme.css`.
 For standard: WP files at workspace root, Tailwind tokens at `assets/css/source/style.css`.
 
+> **Cowork note:** the sandbox's bash sessions are independent (no cwd carry-over). When chaining steps that depend on each other (e.g. detect → cp), put them in a single bash call or rely on Read/Write tools which are stateless and identical across platforms.
+
 ### 2. If Figma URL provided — auto-detect brand tokens
 
-Call Figma MCP:
+Call Figma MCP (probe for availability first — see INSTALL-MCPS.md):
 
 ```
-mcp__1c83dedb...__get_metadata
-mcp__1c83dedb...__get_variable_defs
-mcp__1c83dedb...__get_design_context
-mcp__1c83dedb...__get_screenshot
+mcp__Figma__get_metadata
+mcp__Figma__get_variable_defs
+mcp__Figma__get_design_context
+mcp__Figma__get_screenshot
 ```
+
+If `mcp__Figma__*` tools aren't available (user hasn't installed the Figma MCP yet), skip auto-detection and fall through to the placeholder-colors path in step 3.
 
 Extract:
 - **Primary** — most-used CTA / brand color (variable names with "primary", "brand", "main")
@@ -233,8 +248,10 @@ require_once __DIR__ . '/acf-setup.php';
  * Project-specific custom functions.
  * All additions go in inc/custom-functions.php (don't edit this file further).
  */
-require get_template_directory() . '/inc/custom-functions.php';
+require get_stylesheet_directory() . '/inc/custom-functions.php';
 ```
+
+`get_stylesheet_directory()` is used here instead of `get_template_directory()` so child themes can later override `inc/custom-functions.php` if needed. In a parent-only setup both functions return the same path — there's no downside to the more permissive choice.
 
 When future skills generate new function files (e.g. `/create-template` registering a CPT), they go in `theme/inc/<name>.php` and get added as a `require_once` line inside `custom-functions.php` — never directly into `functions.php`.
 

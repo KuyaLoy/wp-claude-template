@@ -13,16 +13,18 @@ Probe the available tools silently before doing anything:
 
 | Available tool | Environment | Method |
 |---|---|---|
-| `mcp__Claude_in_Chrome__*` (or any Chrome MCP) | **Cowork mode** | Auto: take screenshot of live, compare to Figma frame, report diffs |
-| `mcp__playwright__*` or other browser MCP | **Claude Code with browser MCP** | Same as above |
-| Browser MCP unavailable | **Claude Code without browser tools** | Manual checklist with strict rigor |
+| `mcp__Claude_in_Chrome__*` or `mcp__Control_Chrome__*` | **Cowork mode** (primary supported) | Auto: take screenshot of live, compare to Figma frame, report diffs |
+| `mcp__playwright__*` (or other browser MCP user installed) | **Claude Code with browser MCP** | Same as above; manual install required (see `INSTALL-MCPS.md`) |
+| No browser MCP available | **Claude Code without browser tools** | Manual checklist with strict rigor |
 
 ```
 # Probe (silent — don't ask the user)
-- Look for any mcp tool whose name contains: chrome, browser, playwright, screenshot, navigate
+- Look for any mcp tool whose name contains: Chrome, browser, playwright, screenshot, navigate
 - If found: AUTO mode
 - If not found: MANUAL mode
 ```
+
+The supported AUTO path is Cowork's built-in Chrome MCP. Claude Code users can also AUTO-screenshot via Playwright but have to install it themselves; see `INSTALL-MCPS.md` for the install command. If neither is present, MANUAL mode runs the user through a strict checklist instead of guessing.
 
 ## AUTO mode (browser MCP available)
 

@@ -13,13 +13,15 @@ When you retro the project (see `../RETRO-WORKFLOW.md`), Claude diffs the snapsh
 
 ## Folder structure
 
+> **Note:** the folders shown below are **illustrative** of how this directory will look once you have completed projects to archive. As of v3.1.0 no snapshots have been added yet — the first one will be `jg-vertical/` after its retro.
+
 ```
 completed-projects/
 ├── README.md          ← this file
-├── jg-vertical/       ← v1.0.0 — the first real project
+├── jg-vertical/       ← (illustrative) v1.0.0 — the first real project
 │   ├── .claude/       (frozen snapshot)
 │   └── notes.md       (date shipped, key learnings, link to retro section)
-├── abc-painting/      ← v2.0.0 — second project
+├── abc-painting/      ← (illustrative) future project
 │   ├── .claude/
 │   └── notes.md
 └── ...

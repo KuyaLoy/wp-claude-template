@@ -35,11 +35,13 @@ If you weren't passed a conventions summary, refuse to start and ask the caller 
 ### 2. Fetch Figma data (if not pre-fetched)
 
 ```
-mcp__1c83dedb...__get_metadata
-mcp__1c83dedb...__get_design_context
-mcp__1c83dedb...__get_screenshot
-mcp__1c83dedb...__get_variable_defs
+mcp__Figma__get_metadata
+mcp__Figma__get_design_context
+mcp__Figma__get_screenshot
+mcp__Figma__get_variable_defs
 ```
+
+These names work in both Cowork (built-in Figma MCP) and Claude Code (after `claude mcp add figma`). If the Figma MCP isn't installed, ask the user to install it (see `INSTALL-MCPS.md`) or paste a screenshot inline.
 
 ### 3. Plan the markup
 

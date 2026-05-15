@@ -20,7 +20,7 @@ Specialist for the desktop-only → mobile-first transformation, and for reviewi
 
 You receive a desktop-built section file. Plan the mobile breakdown, apply mobile-first classes, surface guesses, output the rewritten file.
 
-## When called by `merge-mobile-desktop`
+## When called by `match-mobile-desktop`
 
 You receive two Figma frames. Compute the diff, decide breakpoint per element, output a single mobile-first markup file.
 

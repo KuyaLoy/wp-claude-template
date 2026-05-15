@@ -39,16 +39,16 @@ If `README.md` doesn't exist OR doesn't contain the expected `## Project convent
 
 ### 2. Read brand tokens from Tailwind source CSS
 
-The theme uses Tailwind 4 with `@theme inline`. Look for the source CSS file (commonly `assets/css/source/style.css` or `src/style.css`):
+The theme uses Tailwind 4 with `@theme`. Look for the source CSS file (commonly `assets/css/source/style.css` or `src/style.css`):
 
 ```bash
-grep -r "@theme inline" assets/ src/ 2>/dev/null | head -5
+grep -r "@theme" assets/ src/ 2>/dev/null | head -5
 ```
 
 Then read that block:
 
 ```bash
-sed -n '/@theme inline/,/^}/p' <path-to-source-css>
+sed -n '/@theme/,/^}/p' <path-to-source-css>
 ```
 
 Look for:
@@ -117,7 +117,7 @@ Print a concise summary the calling agent can use directly:
 ```
 ## Project conventions for <project name>
 
-### Brand tokens (from style.css @theme inline)
+### Brand tokens (from style.css @theme)
 - --color-primary:   #F5412C → bg-primary, text-primary
 - --color-secondary: #181B22 → bg-secondary, text-secondary
 - --color-accent:    #00AEEF → bg-accent
@@ -166,7 +166,7 @@ templates/parts/section-footer.php
 | `template-homepage.php` or `template-default.php` | Stop. Offer `setup-claude`. |
 | `acf-json/` folder | Create it, ensure writable, document in the workspace README |
 | `inc/helpers.php` | Stop. Offer `setup-claude` to install the helper. |
-| `@theme inline` block | Stop. The Tailwind 4 brand mapping is required. |
+| `@theme` block | Stop. The Tailwind 4 brand mapping is required. |
 
 ## Reply format
 

@@ -228,23 +228,36 @@ Prefix every field name with `<section>_` to avoid clashes (since they all attac
 
 ### B3. Wire into `template-homepage.php`
 
-The homepage template has explicit includes in fixed order:
+The homepage template loops over a `$home_sections` slug array and uses `locate_template($file, false, false)` so missing files are silently skipped (child-theme safe + no PHP warnings on fresh projects):
 
 ```php
 <?php
 /* Template Name: Homepage */
 get_header();
+
+$home_sections = [
+    'home-hero',
+    'home-services',
+    'home-projects',
+    // ...etc...
+];
 ?>
-<main>
-    <?php include get_template_directory() . '/templates/parts/section-home-hero.php'; ?>
-    <?php include get_template_directory() . '/templates/parts/section-home-services.php'; ?>
-    <?php include get_template_directory() . '/templates/parts/section-home-projects.php'; ?>
-    <!-- ...etc... -->
+<main id="primary" class="site-main">
+    <?php
+    foreach ($home_sections as $slug) {
+        $part = locate_template('templates/parts/section-' . $slug . '.php', false, false);
+        if ($part) {
+            include $part;
+        } elseif (current_user_can('manage_options')) {
+            echo '<!-- Homepage section pending: templates/parts/section-' . esc_html($slug) . '.php -->';
+        }
+    }
+    ?>
 </main>
 <?php get_footer(); ?>
 ```
 
-If the include isn't there yet, add it.
+If the new section's slug isn't already in `$home_sections`, add it at the correct visual position.
 
 ### B4. Sync prompt — same as A7
 

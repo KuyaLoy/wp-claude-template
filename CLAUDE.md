@@ -8,7 +8,7 @@ Read this file in full before doing any work. It's the master ruleset for this p
 
 - WordPress 6.x
 - Theme based on Underscores + Tailwind (`underscoretw.com` generator)
-- Tailwind 4 with `@theme inline` brand mapping in the source CSS
+- Tailwind 4 with `@theme` brand mapping in the source CSS
 - ACF Pro (Local JSON enabled in `acf-json/` folder inside the theme)
 - PHP 8.1+
 - No SCSS, no Bootstrap, no custom build tools beyond Tailwind CLI
@@ -64,7 +64,7 @@ NEVER skip phase 1. NEVER do both phases in one go unless the user explicitly sa
 ## 5. Responsive rules
 
 - Always responsive: **desktop → laptop → tablet → mobile**.
-- If the Figma file has both desktop AND mobile frames → user pastes both URLs → `merge-mobile-desktop` skill handles it.
+- If the Figma file has both desktop AND mobile frames → user pastes both URLs → `match-mobile-desktop` skill handles it.
 - If the Figma has only desktop → build mobile-first defaults using sensible breakpoints from `README.md`. Surface guesses in your reply ("I assumed mobile stacks vertically with 24px gap — confirm before approving").
 - If the Figma has only mobile → ask the user if a desktop variant exists before guessing.
 - Touch targets minimum 44×44px on mobile.
@@ -75,7 +75,8 @@ NEVER skip phase 1. NEVER do both phases in one go unless the user explicitly sa
 - Use Tailwind utility classes for everything.
 - Custom CSS only when Tailwind can't express it (animations, complex selectors, third-party overrides). Put it in `assets/css/source/custom.css` under a clearly named class.
 - Do not use `@apply` unless the same combination of utilities repeats 3+ times. Prefer composing utilities inline.
-- Brand colors come from `@theme inline` (Tailwind 4) → use `bg-primary`, `text-secondary`, `font-brand`. Never hex literals in markup unless flagged as deviations.
+- Brand colors come from `@theme` (Tailwind 4) → use `bg-primary`, `text-secondary`, `font-brand`. Never hex literals in markup unless flagged as deviations.
+- **If a Tailwind class "doesn't compile" on the live page, ASK the user before inlining CSS as a workaround.** The Tailwind watcher (`npm run watch`) sometimes pauses silently when the dev's machine stalls. The first response is *not* to write custom CSS — it's to ask: "I notice `<class>` isn't compiling. Is `npm run watch` still running? It may have paused — please restart it and confirm whether the class now applies." Only inline CSS if the user confirms the watcher is healthy and the class still doesn't resolve.
 
 ## 7. Image and SVG rules
 
@@ -254,11 +255,11 @@ wp-content/themes/<theme>/
 - `add-flexible-layout` — add a new layout to the default template's Flexible Content field
 - `create-template` — make a new page / archive / single / search / 404 / taxonomy template (normal or flexible)
 - `acf-json-sync` — manage `acf-json/` folder, bump timestamps, prompt user to sync
-- `merge-mobile-desktop` — given desktop + mobile Figma URLs, build a single responsive section
+- `match-mobile-desktop` — given desktop + mobile Figma URLs, build a single responsive section that matches both pixel-perfectly
 - `pixel-perfect-verify` — screenshot the live page, compare to Figma, report diffs
 - `responsive-build` — given a desktop-only design, plan and apply mobile-first responsive
 - `handle-messy-figma-svg` — when Figma SVG export is truncated/oversized
-- `tailwind-theme-sync` — when adding a new brand token to `@theme inline`
+- `tailwind-theme-sync` — when adding a new brand token to `@theme`
 
 ## 12. Agents you have available
 
@@ -271,6 +272,7 @@ wp-content/themes/<theme>/
 
 ## 13. Slash commands
 
+- `/setup-claude` — first-time project bootstrap (only present on fresh projects; self-deletes after success)
 - `/implement <section-brief.md> <figma-url>` — build a static section
 - `/make-dynamic <section-name>` — convert static to ACF
 - `/add-section <section-name>` — register a new flexible layout

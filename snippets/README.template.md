@@ -237,7 +237,7 @@ Then upload the zip to live host, activate, sanity-check.
 @briefs/home-hero.md https://www.figma.com/design/XXXX/JG-Vertical?node-id=1-2 https://www.figma.com/design/XXXX/JG-Vertical?node-id=1-3
 ```
 
-(Two URLs → triggers `merge-mobile-desktop` skill.)
+(Two URLs → triggers `match-mobile-desktop` skill.)
 
 ### Build a section with no brief written yet
 

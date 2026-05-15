@@ -1,11 +1,11 @@
 ---
 name: tailwind-theme-sync
-description: Add or update brand tokens in Tailwind 4 @theme inline so utilities like bg-success or text-cta-hover work. Triggers on "add a new brand color", "the bg-X utility doesn't work", "register a new token". Updates assets/css/source/style.css and README.md, prompts user to npm run watch to pick up changes.
+description: Add or update brand tokens in Tailwind 4 @theme so utilities like bg-success or text-cta-hover work. Triggers on "add a new brand color", "the bg-X utility doesn't work", "register a new token". Updates assets/css/source/style.css and README.md, prompts user to npm run watch to pick up changes.
 ---
 
 # Tailwind Theme Sync
 
-Tailwind 4 reads brand tokens from `@theme inline` blocks. To add a new utility like `bg-success`, the corresponding `--color-success` must be defined in that block.
+Tailwind 4 reads brand tokens from `@theme` blocks. To add a new utility like `bg-success`, the corresponding `--color-success` must be defined in that block.
 
 ## When to run
 
@@ -22,18 +22,18 @@ Tailwind 4 reads brand tokens from `@theme inline` blocks. To add a new utility 
 ls assets/css/source/style.css src/style.css 2>/dev/null
 ```
 
-### 2. Read the existing @theme inline block
+### 2. Read the existing @theme block
 
 ```bash
-sed -n '/@theme inline/,/^}/p' <path>
+sed -n '/@theme/,/^}/p' <path>
 ```
 
 ### 3. Add the new token
 
-Append inside the `@theme inline { ... }`:
+Append inside the `@theme { ... }`:
 
 ```css
-@theme inline {
+@theme {
   /* existing tokens */
   --color-primary: #...;
   --color-secondary: #...;
@@ -63,7 +63,7 @@ After Tailwind rebuilds (`npm run watch`), the utilities should resolve:
 ## Token added: --color-success: #10B981
 
 Updated:
-- assets/css/source/style.css (added to @theme inline)
+- assets/css/source/style.css (added to @theme)
 - README.md (Brand tokens section)
 
 Now run:
@@ -75,7 +75,7 @@ Use as:
 
 ## Common mistakes
 
-- Adding tokens outside `@theme inline` block (won't generate utilities)
+- Adding tokens outside `@theme` block (won't generate utilities)
 - Using `--brand-success` instead of `--color-success` (Tailwind needs the `--color-*` prefix to make utilities)
 - Forgetting to rebuild after adding (utilities won't show up)
 - Adding the same token twice (Tailwind takes the last definition silently)

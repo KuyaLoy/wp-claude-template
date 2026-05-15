@@ -1,11 +1,11 @@
 ---
-name: merge-mobile-desktop
-description: Build a single responsive section from TWO Figma frames (desktop + mobile). Triggers when the user pastes two Figma URLs together. Maps both frames to one mobile-first markup using project breakpoints, surfaces any irreconcilable differences.
+name: match-mobile-desktop
+description: Build a single responsive section from TWO Figma frames (desktop + mobile). Triggers when the user pastes two Figma URLs together. Maps both frames to one mobile-first markup using project breakpoints, surfaces any irreconcilable differences. (Renamed from merge-mobile-desktop in v3.1.0 — same workflow, clearer name. Both frames are treated as canonical designs, not "desktop scaled down".)
 ---
 
-# Merge Mobile + Desktop Figma
+# Match Mobile + Desktop Figma
 
-Use when the user provides both desktop and mobile Figma frames. Output is a single section file with mobile-first responsive utilities.
+Use when the user provides both desktop and mobile Figma frames. Output is a single section file with mobile-first responsive utilities that match BOTH frames pixel-perfectly — never treat mobile as a "scaled-down" version of desktop.
 
 ## Workflow
 
@@ -47,7 +47,7 @@ Sometimes mobile and desktop have different content — e.g., desktop shows 6 ca
 Same as `implement-figma-section` reply, plus:
 
 ```
-### Mobile/desktop merge notes
+### Mobile/desktop match notes
 - [diff table]
 - [irreconcilable items + decisions]
 ```
