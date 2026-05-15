@@ -1,0 +1,47 @@
+{
+  "_comment": "Single source of truth for brand identity. Read by aiims_brand() helper, helpers.php, header/footer partials, CF7 email templates, schema.org markup, and any per-project component that needs phone/email/colors. Update once here, propagates everywhere. Lives at workspace root so it's accessible to both the theme and any sibling tooling.",
+
+  "brand": {
+    "name": "{{PROJECT_NAME}}",
+    "tagline": "",
+    "founded": ""
+  },
+
+  "contact": {
+    "phone_display": "{{PHONE_DISPLAY}}",
+    "phone_tel": "{{PHONE_TEL}}",
+    "email": "",
+    "address_line_1": "",
+    "address_line_2": "",
+    "address_locality": "",
+    "address_region": "",
+    "postal_code": "",
+    "country": "{{PHONE_COUNTRY}}"
+  },
+
+  "urls": {
+    "local": "{{LOCAL_URL}}",
+    "production": "{{PROD_URL}}",
+    "figma": "{{FIGMA_URL}}"
+  },
+
+  "colors": {
+    "primary": "{{COLOR_PRIMARY}}",
+    "secondary": "{{COLOR_SECONDARY}}",
+    "accent": "{{COLOR_ACCENT}}",
+    "text": "{{COLOR_TEXT}}"
+  },
+
+  "fonts": {
+    "brand": "{{FONT}}",
+    "body": "{{FONT}}"
+  },
+
+  "social": {
+    "facebook": "",
+    "instagram": "",
+    "linkedin": "",
+    "twitter": "",
+    "youtube": ""
+  }
+}

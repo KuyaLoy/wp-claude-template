@@ -15,6 +15,7 @@ Before writing a seeder, verify:
 2. ☐ The user has synced ACF in WP Admin (otherwise the field group exists in code but not in the DB — `update_field()` will fail)
 3. ☐ The target post exists (e.g. "Home" page for homepage sections, or any page using `template-default.php` for flexible layouts)
 4. ☐ `inc/custom-functions.php` has the seeder glob (added in v3.6.0 — verify line `foreach (glob(__DIR__ . '/seed-*.php')` is present)
+5. ☐ **Images are in the media library** (if the section has ACF image fields). If `theme/assets/images/<slug>/` still has static files, stop and suggest `/upload-images <slug>` first — that uploads each file, returns attachment IDs you'll need here, and deletes the static folder. Without that, you'll be left guessing attachment IDs.
 
 If any pre-check fails, stop and tell the user what's missing.
 

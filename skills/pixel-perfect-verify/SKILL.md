@@ -58,10 +58,45 @@ Figma MCP:
 For each element in the section:
 - **Spacing** — does padding/margin match within 2px?
 - **Color** — do hex/RGB values match (allow 5% delta on subtle gradients/shadows)?
-- **Typography** — font family, size, weight, line-height, letter-spacing
+- **Typography** — font family, size, weight, line-height, letter-spacing (see "Typography drift" below for the special case)
 - **Position** — element placement within parent
 - **Asset quality** — is image at intended resolution? Is SVG crisp?
 - **Hover/focus** — if Figma shows a hover variant, trigger via JS execute and compare
+
+### 3a. Typography drift (Figma vs browser rendering)
+
+**This is the most common "looks slightly off" cause.** Figma uses its own text renderer; browsers use the system/font-engine renderer. Even when font-family, size, and weight all match exactly, the rendered text can differ visually because:
+
+- **Figma letter-spacing** uses percent units relative to font-size. Browser CSS `letter-spacing` uses em/px directly. Figma 0% ≈ browser default, but Figma's default often LOOKS tighter than the browser's because of the way Figma anti-aliases edges.
+- **Figma line-height** can be "Auto" (resolves to ~1.2× font-size depending on font metrics). Browser CSS default depends on font + browser. A heading rendered at "Auto" in Figma will often look tighter than the same heading at browser default `line-height: normal`.
+- **Figma font-rendering** uses `optimizeLegibility` equivalent. Browser default varies.
+
+**When AUTO mode detects typography drift, suggest specific Tailwind adjustments:**
+
+| Symptom | Likely cause | Suggested fix (Tailwind) |
+|---|---|---|
+| Heading text looks "looser" / "wider" than Figma | Browser letter-spacing > Figma | Add `tracking-tight` (-0.025em) or arbitrary `tracking-[-0.02em]` |
+| Heading lines look "taller" than Figma | Browser line-height > Figma's Auto | Add `leading-tight` (1.25) or arbitrary `leading-[1.1]` or `leading-none` (1.0) |
+| Body text feels "airy" compared to Figma | Browser line-height too loose | Add `leading-relaxed` (1.625) vs `leading-snug` (1.375) — pick to match Figma's computed line-height |
+| Display text (large headings) looks "thin" in browser | Browser smoothing differs | Add `[text-rendering:optimizeLegibility]` or `subpixel-antialiased` arbitrary, OR use `font-feature-settings` if specific OpenType features are needed |
+| Letters look slightly clipped on left/right edges | `font-feature-settings` mismatch | Try `font-feature-settings: 'kern' 1` via arbitrary class, or `font-stretch` adjustments |
+| Numbers look misaligned in cards/tables | Default numeric variant differs | `tabular-nums` (proportional → tabular) or `oldstyle-nums` (lining → oldstyle) |
+
+**Default rule of thumb:** if a heading in Figma looks tight + bold, try `tracking-tight leading-tight` as the first adjustment. Most "off but I can't say why" typography issues resolve there.
+
+**In the report, flag every typography difference under "Typography drift" with a specific suggestion the user can copy-paste:**
+
+```
+### Typography drift
+1. h1 heading-text: Figma renders ~3px tighter than browser.
+   Suggested: add `tracking-tight leading-none` (or arbitrary `tracking-[-0.02em] leading-[1.05]`)
+
+2. Body paragraph: line-height 1.6 in browser, ~1.4 in Figma.
+   Suggested: change `leading-relaxed` → `leading-snug`
+
+3. CTA button text: appears slightly thicker in browser.
+   Suggested: try `font-medium` instead of `font-semibold`, OR add `antialiased`
+```
 
 ### 4. Categorize findings
 

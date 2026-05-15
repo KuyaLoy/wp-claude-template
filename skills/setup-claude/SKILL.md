@@ -278,6 +278,26 @@ Open `tailwind/tailwind-theme.css` (underscoretw) or `assets/css/source/style.cs
 
 If `tailwind-theme.css` uses `var(--wp--preset--color--primary)` etc. (underscoretw default), replace with hex values.
 
+### 7b. Generate `brand.config.json` (single source of truth)
+
+Copy `snippets/brand.config.json` to the workspace root (one level above the theme directory). Replace placeholder tokens with detected/asked values:
+
+| Placeholder | Replace with |
+|---|---|
+| `{{PROJECT_NAME}}` | Display name (from step 1 / Figma) |
+| `{{PHONE_DISPLAY}}` | The user-visible format (e.g. `02 8107 3910`) |
+| `{{PHONE_TEL}}` | Digits-only for `tel:` links (e.g. `0281073910`) |
+| `{{PHONE_COUNTRY}}` | `AU` / `US` / `UK` / `PH` etc. |
+| `{{LOCAL_URL}}` | Auto-detected local URL |
+| `{{PROD_URL}}` | From step 2 question (or `TBC`) |
+| `{{FIGMA_URL}}` | From step 2 question (or `TBC`) |
+| `{{COLOR_*}}` | From Figma or placeholders |
+| `{{FONT}}` | From Figma or `Inter` |
+
+Email, address, social links, tagline are left blank — the user fills them in via WP Admin or by editing the file directly when those become known.
+
+After this, helpers and templates can read brand identity via `aiims_brand('contact.phone_display')` etc. instead of hardcoding values in 30 places.
+
 ### 8. Create briefs/ and brief template
 
 ```bash

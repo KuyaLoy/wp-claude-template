@@ -34,6 +34,27 @@ Aspirational features identified during retros that haven't landed yet. Each wil
 
 ---
 
+## [3.7.0] — 2026-05-15
+
+**Workflow polish: upload + cleanup + typography tune + brand config.** Four retro-driven additions that close the remaining manual-step gaps in the section workflow. Eliminates 20-40 manual WP-Admin clicks per project (image uploads + section cleanup) and gives the user one source of truth for brand identity.
+
+### Added
+
+- **`skills/upload-images/SKILL.md` + `commands/upload-images.md` + `snippets/uploader-template.php`** — new step 5a in the workflow. Scans `theme/assets/images/<slug>/`, writes a one-shot loader at `theme/inc/upload-<slug>.php` that uploads each file to the WP media library via `wp_handle_sideload` + `wp_insert_attachment`, generates resized variants via `wp_generate_attachment_metadata`, tags each attachment with `_aiims_source_section` postmeta for future querying, returns the attachment IDs as HTML output, deletes the source folder, self-unlinks. Tied into the seed-data skill's pre-checks so users get pointed to it automatically.
+- **`skills/cleanup-section/SKILL.md` + `commands/cleanup-section.md`** — new step 6 (optional production sweep). Strips dev-only doc headers (`Phase: static (pre-ACF)`, `Source: <figma-url>`), removes yellow scaffold-stub markup, validates every `get_sub_field()` / `get_field()` reference against the ACF JSON, flags orphaned static assets, surfaces `TODO`/`FIXME`/`var_dump`/commented-out code. Three-tier report: ✓ Applied · ⚠ Needs decision · 🔴 Issues. Auto-applies only the safe edits.
+- **`snippets/brand.config.json` + `aiims_brand()` helper in `helpers.php`** — single source of truth for brand identity. JSON at workspace root with brand.name/tagline, contact.phone/email/address, urls.local/production/figma, colors, fonts, social. Read via dot-notation: `aiims_brand('contact.phone_display')`. Result cached per-request. setup-claude now populates the JSON during initial project setup.
+- **Typography drift detection in `pixel-perfect-verify`** — new "Typography drift (Figma vs browser rendering)" sub-section in AUTO mode comparison. Documents the most common Figma-to-browser font rendering issues (letter-spacing differences, line-height "auto" vs CSS normal, font-rendering hints) with a lookup table mapping symptoms to specific Tailwind tweaks (`tracking-tight`, `leading-none`, `tabular-nums`, etc.). Report now flags every typography difference with a copy-paste fix.
+
+### Changed
+
+- **`snippets/custom-functions.php` glob loader extended** to load both `inc/seed-*.php` AND `inc/upload-*.php` — same auto-load pattern, two file families.
+- **`skills/seed-data/SKILL.md` pre-checks updated:** now explicitly checks for unuploaded images in `theme/assets/images/<slug>/` and points the user at `/upload-images <slug>` first when found. Stops the previous failure mode where users would write seeders against attachment IDs they didn't have yet.
+- **CLAUDE.md §3 workflow expanded from 5 steps to 6** (with Step 5 split into 5a Upload + 5b Seed): static → cross-check → dynamic → sync → upload-images → seed → cleanup. Steps 5a + 5b + 6 marked OPTIONAL but encouraged.
+- **CLAUDE.md §13 slash commands list** updated with `/upload-images`, `/seed`, `/cleanup-section`. `/build` description notes optional seed chain. `/pixel-check` description notes typography drift detection.
+- **`skills/setup-claude/SKILL.md`** gets a new step 7b: generate `brand.config.json` from the user's answers, populated with project name, phone (display + tel formats), country, URLs (local + prod + figma), colors, font.
+
+---
+
 ## [3.6.0] — 2026-05-15
 
 **Seed as a first-class workflow step.** Retro-driven: the seeder pattern was used 25+ times on JG Vertical but never codified into the template. Now `static → cross-check → dynamic → sync → seed` is the full 5-step section workflow, with skills/commands/snippets supporting the seed step end-to-end.

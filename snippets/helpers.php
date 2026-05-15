@@ -166,6 +166,52 @@ function aiims_svg_kses()
 }
 
 /* -----------------------------------------------------------
+ *  Brand config — single source of truth for brand identity.
+ *  Reads from brand.config.json at the workspace root (one level above
+ *  the theme). Cached in a static var for the request lifetime so we
+ *  don't repeatedly hit disk.
+ *
+ *  Usage:
+ *    echo aiims_brand('contact.phone_display');     // dot notation
+ *    echo aiims_brand('contact.email');
+ *    echo aiims_brand('brand.name');
+ *    $config = aiims_brand();                       // full array
+ *
+ *  Returns empty string for missing keys (safe to echo).
+ * -------------------------------------------------------- */
+
+function aiims_brand($key = null)
+{
+    static $config = null;
+
+    if ($config === null) {
+        // Look one level up from the theme directory (workspace root)
+        $path = dirname(get_stylesheet_directory()) . '/brand.config.json';
+        if (!file_exists($path)) {
+            // Fallback: try theme directory itself
+            $path = get_stylesheet_directory() . '/brand.config.json';
+        }
+        if (file_exists($path)) {
+            $json   = file_get_contents($path);
+            $config = json_decode($json, true) ?: [];
+        } else {
+            $config = [];
+        }
+    }
+
+    if ($key === null) return $config;
+
+    // Dot-notation lookup
+    $parts = explode('.', $key);
+    $value = $config;
+    foreach ($parts as $part) {
+        if (!is_array($value) || !array_key_exists($part, $value)) return '';
+        $value = $value[$part];
+    }
+    return is_scalar($value) ? $value : '';
+}
+
+/* -----------------------------------------------------------
  *  SVG upload safety — allow + sanitize SVG file uploads in WP Admin.
  *  (Even if you mostly use textarea-paste for SVGs, content editors may
  *  prefer uploading SVG files via the Media Library / ACF image field.)

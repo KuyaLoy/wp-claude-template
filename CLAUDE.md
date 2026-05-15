@@ -57,13 +57,23 @@ The trigger is any of: **`@<name> <figma-url>`** · `@<name>.md <urls>` · `<nam
 - ACF Pro reads the JSON `modified` timestamp and applies the schema to the DB
 - After this, the editable fields appear in the page editor
 
-**Step 5 — Seed:**
-- The user says "Seed the {section} with: heading=..., body=..." (or runs `/seed <section>`)
+**Step 5a — Upload static images to media library (if any):**
+- If the section has ACF image fields AND static images at `theme/assets/images/<slug>/`, the user runs `/upload-images <slug>` (or asks Claude to "upload section images")
+- The `upload-images` skill writes `theme/inc/upload-<slug>.php` from `snippets/uploader-template.php`
+- The user hits `http://<project>.test/?aiims_upload=<slug>` while logged in as admin → each file goes through `wp_handle_sideload` + `wp_insert_attachment` → returns attachment IDs → deletes the static folder → self-deletes
+- The returned attachment IDs feed directly into Step 5b's seed call
+
+**Step 5b — Seed:**
+- The user says "Seed the {section} with: heading=..., body=..., image=<id>..." (or runs `/seed <section>`)
 - The `seed-data` skill writes `theme/inc/seed-{slug}.php` from `snippets/seeder-template.php` — a one-shot self-deleting PHP file that hooks `template_redirect`, checks `?aiims_seed=<slug>`, populates ACF fields via `update_field()`, then `unlink()`s itself
 - The user hits `http://<project>.test/?aiims_seed=<slug>` while logged in as admin → seeder runs once → file deletes itself
 - Versioned in git, re-runnable by `git checkout`, admin-gated, no leftover endpoints in production
 
-NEVER skip Step 1 (static). NEVER do Steps 1+3 in one go unless the user explicitly says "build static + dynamic together". Seeding is OPTIONAL but encouraged — it eliminates manual content entry.
+**Step 6 — Cleanup (optional, production sweep):**
+- The user runs `/cleanup-section <slug>` (or asks Claude to "clean up <section>")
+- The `cleanup-section` skill strips dev-only doc comments (`Phase: static (pre-ACF)`, `Source: <figma-url>`), removes yellow scaffold-stub markup if present, validates every `get_sub_field()` / `get_field()` call points at a real ACF field, flags orphaned static assets, and reports any dead code. Section becomes production-deployable.
+
+NEVER skip Step 1 (static). NEVER do Steps 1+3 in one go unless the user explicitly says "build static + dynamic together". Steps 5a, 5b, and 6 are OPTIONAL but encouraged — they eliminate manual content entry and keep the theme clean.
 
 ## 4. Figma as source of truth (NON-NEGOTIABLE)
 
@@ -312,12 +322,15 @@ These are auto-discovered from `skills/*/SKILL.md`, `agents/*.md`, and `commands
 ## 13. Slash commands
 
 - `/setup-claude` — first-time bootstrap (self-deletes after success)
-- `/build <name> <figma-url>` — chained: implement → pause for approval → make-dynamic
+- `/build <name> <figma-url>` — chained: implement → pause for approval → make-dynamic → optional seed
 - `/implement <section-brief.md> <figma-url>` — static section build only
 - `/make-dynamic <section-name>` — convert static to ACF
+- `/upload-images <section-name>` — upload static images to WP media library, return IDs, delete static folder
+- `/seed <section-name> <data>` — one-shot self-deleting populator for ACF fields
+- `/cleanup-section <section-name>` — production sweep (strip dev comments, validate ACF refs)
 - `/add-section <section-name>` — register a new flexible layout (no markup)
 - `/create-template` — new page / archive / single / search / 404 / taxonomy template
-- `/pixel-check [section-name]` — compare live render to Figma
+- `/pixel-check [section-name]` — compare live render to Figma (includes typography drift detection)
 - `/ship-check` — pre-deploy: a11y + perf + QA + ACF JSON sync state
 
 ## 14. What NOT to do

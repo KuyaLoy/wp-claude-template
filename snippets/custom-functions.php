@@ -13,17 +13,25 @@ require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/acf-setup.php';
 
 /**
- * Auto-load any active one-shot data seeders at inc/seed-*.php
+ * Auto-load any active one-shot loaders.
  *
- * The seeder pattern: each seeder is a self-contained file that hooks
- * template_redirect, checks ?aiims_seed=<slug>, populates data, then
- * unlink()s itself. After it self-deletes, this glob no longer picks it up.
+ * Two pattern families share the same auto-load:
+ * - inc/seed-<slug>.php   → populates ACF fields via update_field()
+ * - inc/upload-<slug>.php → uploads static images to WP media library
  *
- * See snippets/seeder-template.php for the boilerplate and skills/seed-data/
- * for the workflow Claude uses to write them.
+ * Both hook template_redirect, check ?aiims_<action>=<slug>, are admin-gated,
+ * and unlink() themselves after success. After a file self-deletes, this glob
+ * no longer picks it up — zero leftover endpoints in production.
+ *
+ * See snippets/seeder-template.php and snippets/uploader-template.php for
+ * boilerplates; skills/seed-data/ and skills/upload-images/ for the workflows
+ * Claude uses to write them.
  */
-foreach (glob(__DIR__ . '/seed-*.php') as $seeder) {
-    require_once $seeder;
+foreach (glob(__DIR__ . '/seed-*.php') as $loader) {
+    require_once $loader;
+}
+foreach (glob(__DIR__ . '/upload-*.php') as $loader) {
+    require_once $loader;
 }
 
 // Future additions go here, e.g.:
