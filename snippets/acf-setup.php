@@ -17,19 +17,29 @@ add_filter('acf/settings/load_json', function ($paths) {
     return $paths;
 });
 
-/* Phone validation — adjust regex per project (see workspace README.md). */
+/* -----------------------------------------------------------
+ *  Phone validation
+ *
+ *  Triggers only on ACF text fields named "phone", "mobile", or "telephone".
+ *  The regex + error message below are filled in by /setup-claude based on
+ *  the project's country (default AU). To switch country later, edit the
+ *  lines between PHONE_REGEX_START and PHONE_REGEX_END.
+ * -------------------------------------------------------- */
 add_filter('acf/validate_value/type=text', function ($valid, $value, $field) {
     if ($valid !== true) return $valid;
 
-    // Trigger only on fields named "phone" or "mobile"
     if (!preg_match('/^(phone|mobile|telephone)$/i', $field['name'])) return $valid;
 
-    // Australian default: 04xx xxx xxx, 02/03/07/08 landlines, 1300/1800 specials
     $clean = preg_replace('/[\s\-\(\)]/', '', $value);
-    $au    = '/^(0[2-9]\d{8}|1[38]00\d{6})$/';
 
-    if ($value !== '' && !preg_match($au, $clean)) {
-        return 'Please enter a valid Australian phone number.';
+    /* PHONE_REGEX_START — replaced by /setup-claude based on country choice */
+    // AU: 04xx mobile, 02/03/07/08 landline, 1300/1800 specials
+    $pattern  = '/^(0[2-9]\d{8}|1[38]00\d{6})$/';
+    $message  = 'Please enter a valid Australian phone number.';
+    /* PHONE_REGEX_END */
+
+    if ($value !== '' && !preg_match($pattern, $clean)) {
+        return $message;
     }
 
     return $valid;

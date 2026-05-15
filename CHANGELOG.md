@@ -6,6 +6,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · [Semantic ve
 
 ---
 
+## [3.0.1] — 2026-05-15
+
+**Phase 1 bug-fix pass** — based on full structural audit. Fixes the bugs that would bite a fresh user project. No new features.
+
+### Fixed
+
+- `template-homepage.php` no longer throws PHP warnings on fresh projects. Replaced six hard-coded `include`s with a `locate_template($file, false, false)` loop over a `$home_sections` slug array. Missing files are silently skipped; admins see HTML comments where sections are pending.
+- Phone regex in `acf-setup.php` is now substitutable. Wrapped the AU regex + error message in `PHONE_REGEX_START` / `PHONE_REGEX_END` markers so `/setup-claude` (or a future retro) can swap it cleanly.
+- `{{PROD_URL}}` placeholder in `README.template.md` is now in the `setup-claude` substitution map. Previously the literal `{{PROD_URL}}` stayed in the generated README.
+- `settings.local.json` allow-list now includes the git commands the retro workflow needs (`git status`, `diff`, `log`, `branch`, `add`, `commit`, `push`, `tag`) plus `npm run bundle`.
+
+### Changed
+
+- `aiims_*` helper namespace is now documented as a **fixed AIIMS Group convention** in CLAUDE.md section 9 — not derived from theme slug. Removed the misleading `FN_PREFIX` auto-detection step from `setup-claude/SKILL.md` so the skill no longer pretends to substitute the prefix.
+- `setup-claude` now asks for a Production URL during initial questions (defaults to `TBC` if skipped) and ships a phone-regex lookup table (AU/US-CA/UK/PH) for the country choice.
+
+---
+
 ## [3.0.0] — 2026-05-14
 
 **Based on retro: JG Vertical (2026-05)** — see `RETRO.md`

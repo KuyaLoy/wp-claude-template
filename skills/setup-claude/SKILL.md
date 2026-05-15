@@ -41,10 +41,9 @@ THEME_NAME=$(grep -i "^Theme Name:" theme/style.css | sed 's/.*: *//')
 AUTHOR=$(grep -i "^Author:" theme/style.css | sed 's/.*: *//')
 AUTHOR_URI=$(grep -i "^Author URI:" theme/style.css | sed 's/.*: *//')
 THEME_VERSION=$(grep -i "^Version:" theme/style.css | sed 's/.*: *//')
-
-# Function prefix from existing functions.php (look at the first defined function)
-FN_PREFIX=$(grep -oE 'function ([a-z]+)_setup' theme/functions.php | head -1 | sed 's/function //;s/_setup//')
 ```
+
+**Note on helper namespace:** the template ships with `aiims_*` helpers (`aiims_img`, `aiims_svg_kses`, `aiims_image_dimensions`) as a fixed AIIMS Group convention. `setup-claude` does NOT rewrite these to the theme slug — the helpers stay `aiims_*` regardless of theme prefix. This is documented in CLAUDE.md section 9.
 
 Example — for a project at `<workspace>/jgvertical/wp-content/themes/aiims/` you'd auto-detect:
 - Theme slug: `aiims`
@@ -52,7 +51,6 @@ Example — for a project at `<workspace>/jgvertical/wp-content/themes/aiims/` y
 - Display name: `JG Vertical` (after smart-split)
 - Local URL: `http://jgvertical.test` (Laragon convention; for non-Laragon dev environments, ask the user)
 - Author: `AIIMS Group`
-- Function prefix: `aiims`
 
 If the smart-split looks wrong (e.g., it produces `Jgvertical` instead of `JG Vertical`), Claude can ask the user to correct just the display name.
 
@@ -68,9 +66,10 @@ I auto-detected:
 A few quick optional questions:
 
 1. Project name correct? (yes / type the right name)
-2. Figma file URL? (paste it and I'll auto-detect brand colors, font, container width)
+2. Production URL? (e.g., https://jgvertical.com.au — or "TBC" if not yet known)
+3. Figma file URL? (paste it and I'll auto-detect brand colors, font, container width)
    (or skip — I'll use placeholder colors and you can update later)
-3. Anything special? (e.g., "phone is US, not AU", "container is 1920 fluid",
+4. Anything special? (e.g., "phone is US, not AU", "container is 1920 fluid",
    "needs RTL", "Swiper enabled by default"). Or "no" / "default".
 
 Defaults applied unless you say otherwise:
@@ -185,6 +184,21 @@ TS=$(date +%s)
 sed -i "s/\"modified\": [0-9]*/\"modified\": $TS/" $THEME/acf-json/group_default_template_sections.json
 ```
 
+### 5b. Apply phone regex for project country
+
+`snippets/acf-setup.php` ships with an AU regex inside markers `PHONE_REGEX_START` / `PHONE_REGEX_END`. If the user's "anything special" answer mentioned a non-AU country, swap the block between those markers using this lookup table.
+
+| Country | `$pattern` | `$message` |
+|---|---|---|
+| AU (default) | `/^(0[2-9]\d{8}|1[38]00\d{6})$/` | `Please enter a valid Australian phone number.` |
+| US / CA | `/^(\+?1)?[2-9]\d{9}$/` | `Please enter a valid US/Canadian phone number.` |
+| UK | `/^(0|\+44)(7\d{9}|[12]\d{8,9})$/` | `Please enter a valid UK phone number.` |
+| PH | `/^(0|\+63)(9\d{9}|2\d{7,8}|[3-8]\d{6,8})$/` | `Please enter a valid Philippine phone number.` |
+
+Use the Edit tool to replace the AU block between the markers. Keep the markers in place — they're how future re-runs find the block.
+
+If the user names a country not in the table, ask them for the regex + error message, then apply the same edit.
+
 ### 6. Wire functions.php — single-require pattern
 
 **Don't append multiple requires to `functions.php`.** Keep the underscoretw upstream clean. Instead:
@@ -292,6 +306,7 @@ Read `.claude/snippets/README.template.md`. Replace placeholders:
 |---|---|
 | `{{PROJECT_NAME}}` | Display name (auto-detected, user-confirmed) |
 | `{{LOCAL_URL}}` | Auto-detected local URL |
+| `{{PROD_URL}}` | Production URL from question 2, or `TBC` if user said skip |
 | `{{THEME_SLUG}}` | Theme folder slug |
 | `{{COLOR_PRIMARY/SECONDARY/ACCENT/TEXT}}` | From Figma or placeholders |
 | `{{FONT}}` | From Figma or "Inter" |
@@ -301,6 +316,8 @@ Read `.claude/snippets/README.template.md`. Replace placeholders:
 | `{{PHONE_COUNTRY}}` | `AU` (or override from "anything special") |
 | `{{PHONE_DISPLAY}}` | `1300 000 000` |
 | `{{FIGMA_URL}}` | The Figma URL (or "TBC") |
+
+After substitution, grep the generated `README.md` for any remaining `{{` to catch placeholders that weren't mapped. None should remain — if any do, replace them with `TBC` and surface to the user.
 
 If a `README.md` already exists (underscoretw default), confirm before overwriting.
 

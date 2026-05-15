@@ -208,7 +208,8 @@ For Flexible Content layouts on the default template: the `flexible_sections` fi
 ## 9. Code style
 
 - Minimal comments. The user wants to read and edit this themselves. Comments only when the intent isn't obvious from the code.
-- PHP follows WordPress coding standards (4-space indent, snake_case functions, prefix project functions with the theme slug — e.g., `aiims_setup()`).
+- PHP follows WordPress coding standards (4-space indent, snake_case functions).
+- **Helper namespace is always `aiims_*`** — fixed template convention (AIIMS Group). NOT derived from the theme slug. Examples: `aiims_img()`, `aiims_svg_kses()`, `aiims_image_dimensions()`. Any project-specific helpers, CPT registrations, or shortcodes follow the same `aiims_*` prefix unless the user explicitly overrides.
 - Always escape: `esc_html()`, `esc_attr()`, `esc_url()`, `wp_kses_post()` for rich text.
 - Always guard ACF output: `if ($field) :` / `if (have_rows('x')) :`.
 - Prefer `<?= ?>` short echo tags inside markup, full `<?php ?>` for logic blocks.
