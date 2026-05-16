@@ -22,15 +22,15 @@ Aspirational features identified during retros that haven't landed yet. Each wil
 
 ### Planned snippets
 
-- `brand.config.json` — single source of truth for brand name / colors / contact / fonts
 - `snippets/image-with-skeleton.php` — standard lazy-image with pulse animation
 - `snippets/cf7-emails/` — drop-in branded HTML email templates
 - `snippets/footer-brand-block.php` — standardised footer with brand placeholder
 - `snippets/sticky-mobile-cta.php` — optional mobile-bottom CTA bar
 
-### Planned cheatsheet work
+### Recently shipped (formerly listed here, now done)
 
-- Split `cheatsheet/index.html` into `cowork.html` + `code.html` with a small `index.html` picker (Phase 5 of the polish roadmap)
+- ✓ `brand.config.json` single source of truth → shipped in v3.7.0
+- ✓ Cheatsheet split into Cowork + Code paths → shipped in v3.4.0, then **consolidated back into a single tabbed page** in v3.8.0 because the maintenance overhead of two separate files outweighed the audience-segmentation benefit
 
 ---
 

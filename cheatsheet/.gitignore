@@ -1,0 +1,5 @@
+# Keep the real .env out of git — it contains your API key.
+.env
+
+# Allow the template to be committed
+!.env.example

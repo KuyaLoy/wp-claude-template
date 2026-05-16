@@ -1,0 +1,18 @@
+# Cheatsheet — Apache config
+# Serves index.php as default, blocks .env from being requested over HTTP.
+
+DirectoryIndex index.php index.html
+
+# Deny direct access to .env files
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+# Deny access to PHP files in partials/ directly (they're includes, not endpoints)
+<FilesMatch "^_">
+    Require all denied
+</FilesMatch>
+
+# Standard mime types
+AddType application/javascript .js
+AddType text/css .css
