@@ -97,13 +97,33 @@
 
         const copyBtn = div.querySelector('[data-copy]');
         copyBtn.addEventListener('click', async () => {
+            let success = false;
             try {
-                await navigator.clipboard.writeText(polished);
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(polished);
+                    success = true;
+                } else {
+                    // Fallback for http://localhost or older browsers
+                    const ta = document.createElement('textarea');
+                    ta.value = polished;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    ta.style.top = '-1000px';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    success = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                }
+            } catch (_) { success = false; }
+
+            if (success) {
                 copyBtn.textContent = '✓ Copied';
                 copyBtn.classList.add('copied');
                 setTimeout(() => { copyBtn.textContent = '📋 Copy'; copyBtn.classList.remove('copied'); }, 1400);
-            } catch (_) {
-                copyBtn.textContent = 'Failed';
+            } else {
+                copyBtn.textContent = 'Select + ⌘C';
+                setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 2400);
             }
         });
 

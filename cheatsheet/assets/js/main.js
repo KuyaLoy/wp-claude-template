@@ -105,14 +105,32 @@
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             const text = (el.textContent || '').replace(/Copy$/, '').trim();
+            let success = false;
             try {
-                await navigator.clipboard.writeText(text);
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    success = true;
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    ta.style.top = '-1000px';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    success = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                }
+            } catch (_) { success = false; }
+
+            if (success) {
                 btn.textContent = '✓ Copied';
                 btn.classList.add('copied');
                 setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1400);
-            } catch (_) {
-                btn.textContent = 'Failed';
-                setTimeout(() => (btn.textContent = 'Copy'), 1400);
+            } else {
+                btn.textContent = 'Select + ⌘C';
+                setTimeout(() => (btn.textContent = 'Copy'), 2400);
             }
         });
     });
